@@ -11,7 +11,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Cache;.Net;Redis;IMemoryCache;</PackageTags>
     <Version>1.0.0-alpha</Version>    
-    <FileVersion>1.0.0</FileVersion>
+    <FileVersion>1.0.1</FileVersion>
 	  <GenerateSymbolPackage Condition=" '$(GenerateSymbolPackage)' == '' ">True</GenerateSymbolPackage>
   </PropertyGroup>
 

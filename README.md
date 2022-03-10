@@ -1,13 +1,13 @@
-# AutoCache
+# Why AutoCache?
 
-Cache misses often causes a large number of requests being referred to the database at the same time, until the data is cached again. Under pressure, this can reduce system performance and functionality.
+Cache misses often causes a large number of requests being referred to the database at the same time, until the data is cached again. This can reduce system performance and functionality.
 
 # How it works?
 
 With AutoCache, outdated cache keys will remain alive until they are expired.
-Suppose 100,000 requests arived at same time, looking for an outdated cache item. All requests get outdated data from cache and cache update task will be triggered only once (Only one request referred to database to update the cache).
+Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring them to the database, all requests will get outdated data from cache and cache update task will be triggered (The database is called only once to update the cache).
 
-When the cache item data, the expire time (ttl) and outdate time of cache key, updated too.
+With the cache key data, the expire (ttl) and outdate time of cache key, updated too.
 
 # Installation
 
