@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+	  <Nullable>enable</Nullable>
+
+    <PackageProjectUrl>https://github.com/n-yousefi/AutoCache</PackageProjectUrl>
+    <Description>A .NET cache wrapper; prevent waiting on DB Fetches and remove multiple DB accesses on cache misses.</Description>
+    <Copyright>©2022 Naser Yousefi</Copyright>
+    <RepositoryUrl>https://github.com/n-yousefi/AutoCache</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>Cache;.Net;Redis;IMemoryCache;</PackageTags>
+    <Version>1.0.0-alpha</Version>    
+    <FileVersion>1.0.0</FileVersion>
+	  <GenerateSymbolPackage Condition=" '$(GenerateSymbolPackage)' == '' ">True</GenerateSymbolPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+name: "Publish Packages"
+on:
+  push:
+    branches: [nuget]
+env:
+  PROJECT_PATH: "src/AutoCache/AutoCache.csproj"
+  PACKAGE_OUTPUT_DIR: ${{github.workspace}}/output
+  NUGET_SOURCE_URL: "https://api.nuget.org/v3/index.json"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: "Restore packages"
+        run: dotnet restore ${{env.PROJECT_PATH}}
+
+      - name: "Build project"
+        run: dotnet build ${{env.PROJECT_PATH}} --no-restore --configuration Release
+
+      - name: "Pack project"
+        run: dotnet pack ${{env.PROJECT_PATH}} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{env.PACKAGE_OUTPUT_DIR}}
+
+      - name: "Push package"
+        run: dotnet nuget push ${{env.PACKAGE_OUTPUT_DIR}}/*.nupkg -k ${{secrets.NUGET_AUTH_TOKEN}} -s ${{env.NUGET_SOURCE_URL}}
+
+      - name: "Push symbol package"
+        run: dotnet nuget push ${{env.PACKAGE_OUTPUT_DIR}}/*.snupkg -k ${{secrets.NUGET_AUTH_TOKEN}} -s ${{env.NUGET_SOURCE_URL}} --skip-duplicate
