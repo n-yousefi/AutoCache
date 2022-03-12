@@ -23,7 +23,7 @@ PM> Install-Package AutoCache
     public abstract class CacheAdapter
     {
         public abstract Task RemoveAsync(string key);
-        public abstract Task SetAsync<T>(string key, T value, DateTime expireAt);
+        public abstract Task SetAsync<T>(string key, T value, TimeSpan expireAt);
         public abstract Task<(T, bool)> GetAsync<T>(string key);
     }
 
@@ -39,8 +39,8 @@ Then inject your adapter in ConfigureServices:
     services.AddSingleton<IMyCacheAdapter>(provider =>
         new MyCacheAdapter(
             provider.GetService<IServiceScopeFactory>(),
-            confguration.GetValue<string>("Cache:DefaultOutdatedAt"),
-            confguration.GetValue<string>("Cache:DefaultExpiredAt")
+            TimeSpan.FromMinutes(2), // DefaultOutdatedAt
+            TimeSpan.FromHours(1) //DefaultExpiredAt
         ));
 
 Now you can use it:
@@ -72,7 +72,7 @@ Now you can use it:
                         var value = await toDoService.GetAsync();
                         return (value, true);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return (0, false);
                     }

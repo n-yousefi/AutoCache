@@ -22,7 +22,7 @@ namespace AutoCache
             Func<TService, bool, Task<(T, bool)>> DbFetch,
             TimeSpan? outdatedAt = null,
             TimeSpan? expireAt = null)
-        {            
+        {
             // DB fetch action
             async void UpdateTask(TService svc)
             {
@@ -30,8 +30,12 @@ namespace AutoCache
                 var (dbValue, hasValue) = await DbFetch(svc, true);
                 if (hasValue)
                 {
-                    // Store In Cache;
-                    var cacheValue = new CacheValue<T>(dbValue, outdatedAt ?? _defaulOutdatedAt);
+                    // Store In Cache;                    
+                    var cacheValue = new CacheValue<T>()
+                    {
+                        Value = dbValue,
+                        OutdatedAt = DateTime.Now.Add(outdatedAt ?? _defaulOutdatedAt)
+                    };
                     await SetAsync(key, cacheValue, expireAt ?? _defaultExpireAt);
                 }
                 else

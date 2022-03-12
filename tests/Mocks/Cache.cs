@@ -9,13 +9,13 @@ namespace UnitTests.Mocks
     public class CacheItem<T>
     {
         public T Value { get; set; }
-        public DateTime Date { get; set; }
+        public DateTime ExpireDate { get; set; }
     }
 
     public class Cache : CacheAdapter
     {
-        public Cache(IServiceScopeFactory serviceScopeFactory) : 
-            base(serviceScopeFactory,TimeSpan.FromMinutes(1),TimeSpan.FromHours(1))
+        public Cache(IServiceScopeFactory serviceScopeFactory) :
+            base(serviceScopeFactory, TimeSpan.FromMinutes(1), TimeSpan.FromHours(1))
         {
 
         }
@@ -26,7 +26,7 @@ namespace UnitTests.Mocks
 
         public override Task SetAsync<T>(string key, T value, TimeSpan expireAt)
         {
-            _cache[key] = new CacheItem<T> { Value = value, Date = DateTime.Now.Add(expireAt) };
+            _cache[key] = new CacheItem<T> { Value = value, ExpireDate = DateTime.Now.Add(expireAt) };
             return Task.CompletedTask;
         }
 
@@ -35,7 +35,7 @@ namespace UnitTests.Mocks
             if (_cache.TryGetValue(key, out dynamic value))
             {
                 var item = (CacheItem<T>)value;
-                if (item.Date >= DateTime.Now)
+                if (item.ExpireDate >= DateTime.Now)
                     return Task.FromResult((item.Value, true));
             }
             return Task.FromResult((default(T), false));
