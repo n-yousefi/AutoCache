@@ -14,7 +14,8 @@ namespace UnitTests.Mocks
 
     public class Cache : CacheAdapter
     {
-        public Cache(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
+        public Cache(IServiceScopeFactory serviceScopeFactory) : 
+            base(serviceScopeFactory,TimeSpan.FromMinutes(1),TimeSpan.FromHours(1))
         {
 
         }
@@ -23,9 +24,9 @@ namespace UnitTests.Mocks
 
         public override Task RemoveAsync(string key) => Task.FromResult(_cache.Remove(key));
 
-        public override Task SetAsync<T>(string key, T value, DateTime expireAt)
+        public override Task SetAsync<T>(string key, T value, TimeSpan expireAt)
         {
-            _cache[key] = new CacheItem<T> { Value = value, Date = expireAt };
+            _cache[key] = new CacheItem<T> { Value = value, Date = DateTime.Now.Add(expireAt) };
             return Task.CompletedTask;
         }
 

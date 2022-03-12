@@ -23,6 +23,6 @@ namespace UnitTests.Services
                     {
                         return (0, false);
                     }
-                }, 10, 1000);
+                }, TimeSpan.FromMilliseconds(10), TimeSpan.FromSeconds(1));
     }
 }

@@ -8,25 +8,21 @@ namespace AutoCache
     public abstract class CacheAdapter : ICacheAdapter
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private double _defaulOutdatedAtMiliSecond, _defaultExpireAtMiliSecond;
+        private TimeSpan _defaulOutdatedAt, _defaultExpireAt;
         public CacheAdapter(IServiceScopeFactory serviceScopeFactory,
-            double defaulOutdatedAtMiliSecond = 60000,
-            double defaultExpireAtMiliSecond = 3600000)
+            TimeSpan defaulOutdatedAt,
+            TimeSpan defaultExpireAt)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _defaulOutdatedAtMiliSecond = defaulOutdatedAtMiliSecond;
-            _defaultExpireAtMiliSecond = defaultExpireAtMiliSecond;
+            _defaulOutdatedAt = defaulOutdatedAt;
+            _defaultExpireAt = defaultExpireAt;
         }
         public async Task<T> GetOrCreateAsync<T, TService>(
             string key,
             Func<TService, bool, Task<(T, bool)>> DbFetch,
-            double? outdatedAtMiliSecond = null,
-            double? expireAtMiliSecond = null)
-        {
-
-            var expireAt = DateTime.Now.AddMilliseconds(expireAtMiliSecond ?? _defaultExpireAtMiliSecond);
-            var outdatedAt = DateTime.Now.AddMilliseconds(outdatedAtMiliSecond ?? _defaulOutdatedAtMiliSecond);
-
+            TimeSpan? outdatedAt = null,
+            TimeSpan? expireAt = null)
+        {            
             // DB fetch action
             async void UpdateTask(TService svc)
             {
@@ -35,8 +31,8 @@ namespace AutoCache
                 if (hasValue)
                 {
                     // Store In Cache;
-                    var cacheValue = new CacheValue<T>(dbValue, outdatedAt);
-                    await SetAsync(key, cacheValue, expireAt);
+                    var cacheValue = new CacheValue<T>(dbValue, outdatedAt ?? _defaulOutdatedAt);
+                    await SetAsync(key, cacheValue, expireAt ?? _defaultExpireAt);
                 }
                 else
                 {
@@ -70,7 +66,7 @@ namespace AutoCache
         }
 
         public abstract Task RemoveAsync(string key);
-        public abstract Task SetAsync<T>(string key, T value, DateTime expireAt);
+        public abstract Task SetAsync<T>(string key, T value, TimeSpan expireAt);
         public abstract Task<(T, bool)> GetAsync<T>(string key);
     }
 }

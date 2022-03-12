@@ -4,9 +4,9 @@ namespace AutoCache.Models
 {
     public class CacheValue<T>
     {
-        public CacheValue(T value, DateTime outdatedAt)
+        public CacheValue(T value, TimeSpan outdatedAt)
         {
-            OutdatedAt = outdatedAt;
+            OutdatedAt = DateTime.Now.Add(outdatedAt);
             Value = value;
         }
 

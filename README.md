@@ -5,8 +5,7 @@ Cache misses often causes a large number of requests being referred to the datab
 # How it works?
 
 With AutoCache, outdated cache keys will remain alive until they are expired.
-Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring them to the database, all requests will get outdated data from cache and cache update task will be triggered (The database is called only once to update the cache).
-
+Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring them to the database, all requests will get outdated data from cache and the update task is triggered (The database is called only once to update the cache).
 With the cache key data, the expire (ttl) and outdate time of cache key, updated too.
 
 # Installation
@@ -28,22 +27,21 @@ PM> Install-Package AutoCache
         public abstract Task<(T, bool)> GetAsync<T>(string key);
     }
 
-First create an adapter for your caching service (or database), by inheriting from the "BaseCache" abstract class and implement abstract methods.
+First create an adapter for your cache service (or database), by inheriting the "BaseCache" abstract class.
 
-    public class MyCacheAdapter : CacheAdapter{
-        ...
+    public interface IMyCacheAdapter: ICacheAdapter{}
+    public class MyCacheAdapter : CacheAdapter,IMyCacheAdapter{
+        // Override abstract methods
     }
 
-Then instantiate your cache adapter:
+Then inject your adapter in ConfigureServices:
 
-    ICacheAdapter cache = new MyCacheAdapter(
-            serviceScopeFactory, //IServiceScopeFactory
-            60000, //defaulOutdatedAtMiliSecond
-            3600000); //defaultExpireAtMiliSecond
-
-You can inject it in ConfigureServices:
-
-    services.AddSingleton<ICacheAdapter, cache>(); // your cache adapter
+    services.AddSingleton<IMyCacheAdapter>(provider =>
+        new MyCacheAdapter(
+            provider.GetService<IServiceScopeFactory>(),
+            confguration.GetValue<string>("Cache:DefaultOutdatedAt"),
+            confguration.GetValue<string>("Cache:DefaultExpiredAt")
+        ));
 
 Now you can use it:
 
@@ -62,8 +60,8 @@ Now you can use it:
 
     public class CachedTodoService:ToDoService
     {
-        private readonly ICacheAdapter _cache;
-        public CachedTodoService(ICacheAdapter cache) => _cache = cache;
+        private readonly IMyCacheAdapter _cache;
+        public CachedTodoService(IMyCacheAdapter cache) => _cache = cache;
 
         public override async Task<int> GetAsync() =>
             await _cache.GetOrCreateAsync<int, IToDoService>("todo_service_cache_key",
