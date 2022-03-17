@@ -2,7 +2,7 @@
 
 Cache misses often causes a large number of requests being referred to the database, service or resource at the same time, until the data is cached again. This can reduce system performance and functionality.
 
-With AutoCache, cache the is no real cache missess.
+With AutoCache, there is no real cache missess.
 
 # How it works?
 
