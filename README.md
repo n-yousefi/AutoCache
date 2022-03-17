@@ -1,12 +1,14 @@
 # Why AutoCache?
 
-Cache misses often causes a large number of requests being referred to the database at the same time, until the data is cached again. This can reduce system performance and functionality.
+Cache misses often causes a large number of requests being referred to the database, service or resource at the same time, until the data is cached again. This can reduce system performance and functionality.
+
+With AutoCache, cache the is no real cache missess.
 
 # How it works?
 
-With AutoCache, outdated cache keys will remain alive until they are expired.
-Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring them to the database, all requests will get outdated data from cache and the update task is triggered (The database is called only once to update the cache).
-With the cache key data, the expire (ttl) and outdate time of cache key, updated too.
+Each cache keys have outdate and expir times. When the outdate time expires, the cache starts updating with the first request. But the request does not wait, and receives the outdated data.
+
+Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring all of them to the database, all requests will get outdated data from cache and the database is called only once (to update the cache).
 
 # Installation
 
@@ -20,14 +22,21 @@ PM> Install-Package AutoCache
 
 ### How do I get started?
 
-    public abstract class CacheAdapter
+"CacheAdapter" class implements "ICacheAdapter" interface and has tree abstract methods. You must implement them two have the fourth method.
+
+    public interface ICacheAdapter
     {
         public abstract Task RemoveAsync(string key);
         public abstract Task SetAsync<T>(string key, T value, TimeSpan expireAt);
         public abstract Task<(T, bool)> GetAsync<T>(string key);
+
+        public Task<T> GetOrCreateAsync<T, TService>(string key,
+            Func<TService, bool, Task<(T, bool)>> DbFetch,
+            TimeSpan? outdatedAt = null,
+            TimeSpan? expireAt = null);
     }
 
-First create an adapter for your cache service (or database), by inheriting the "BaseCache" abstract class.
+First create an adapter for your cache service (or database):
 
     public interface IMyCacheAdapter: ICacheAdapter{}
     public class MyCacheAdapter : CacheAdapter,IMyCacheAdapter{
@@ -53,7 +62,7 @@ Now you can use it:
     public class ToDoService: IToDoService
     {
         public virtual async Task<int> GetAsync() {
-            // read from DB
+            // read from DB, service or resource ...
             throw new NotImplementedException();
         };
     }
@@ -65,7 +74,7 @@ Now you can use it:
 
         public override async Task<int> GetAsync() =>
             await _cache.GetOrCreateAsync<int, IToDoService>("todo_service_cache_key",
-                async (toDoService, updateIsInProgress) =>
+                async (toDoService, isInUpdate) =>
                 {
                     try
                     {
