@@ -22,13 +22,13 @@ PM> Install-Package AutoCache
 
 ### How do I get started?
 
-"CacheAdapter" class implements "ICacheAdapter" interface and has tree abstract methods. You must implement them two have the fourth method.
+"CacheAdapter" class implements "ICacheAdapter" interface and has tree abstract methods. You must implement them to have the fourth method.
 
     public interface ICacheAdapter
     {
-        public abstract Task RemoveAsync(string key);
         public abstract Task SetAsync<T>(string key, T value, TimeSpan expireAt);
         public abstract Task<(T, bool)> GetAsync<T>(string key);
+        public abstract Task RemoveAsync(string key);
 
         public Task<T> GetOrCreateAsync<T, TService>(string key,
             Func<TService, bool, Task<(T, bool)>> DbFetch,
