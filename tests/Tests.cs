@@ -12,8 +12,8 @@ namespace UnitTests
         public ICacheAdapter Cache { get; set; }
         public Tests()
         {
-            var mockServiceScopeFactory = ServiceScopeFactory.Get((typeof(IToDoService), new ToDoService()));
-            Cache = new Cache(mockServiceScopeFactory.Object);
+            //var mockServiceScopeFactory = ServiceScopeFactory.Get((typeof(IToDoService), new ToDoService()));
+            Cache = new Cache();
         }
 
         [Fact]
@@ -32,6 +32,34 @@ namespace UnitTests
             Assert.Equal(1, result);
             Assert.Equal(1, result2);
             Assert.Equal(2, result3);
+        }
+
+        [Fact]
+        public async Task CacheCoalescing()
+        {
+            var cachedSvc = new CachedTodoService(Cache);
+            Db.State = 1; // Db state changed.            
+            var result = await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();                      
+            await cachedSvc.GetAsync();  
         }
     }
 }

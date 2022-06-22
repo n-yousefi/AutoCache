@@ -14,13 +14,12 @@ namespace UnitTests.Mocks
 
     public class Cache : CacheAdapter
     {
-        public Cache(IServiceScopeFactory serviceScopeFactory) :
-            base(serviceScopeFactory, TimeSpan.FromMinutes(1), TimeSpan.FromHours(1))
+        public Cache() : base(TimeSpan.FromMinutes(1), TimeSpan.FromHours(1))
         {
 
         }
 
-        private readonly Dictionary<string, dynamic> _cache = new Dictionary<string, dynamic>();
+        private readonly Dictionary<string, dynamic> _cache = new();
 
         public override Task RemoveAsync(string key) => Task.FromResult(_cache.Remove(key));
 

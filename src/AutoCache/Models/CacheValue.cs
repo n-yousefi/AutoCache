@@ -2,7 +2,7 @@
 
 namespace AutoCache.Models
 {
-    public class CacheValue<T>
+    public class CacheValue<T> 
     {
         public DateTime OutdatedAt { get; set; }
         public T Value { get; set; } = default!;

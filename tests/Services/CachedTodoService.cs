@@ -12,11 +12,12 @@ namespace UnitTests.Services
 
         public override async Task<int> GetAsync() =>
             await _cache.GetOrCreateAsync<int, IToDoService>("todo_service_cache_key",
-                async (rep, updateIsInProgress) =>
+                async () =>
                 {
                     try
                     {
-                        var value = await rep.GetAsync();
+                        await Task.Delay(10000);
+                        var value = await base.GetAsync();
                         return (value, true);
                     }
                     catch (Exception)
