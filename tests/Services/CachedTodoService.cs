@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AutoCache;
 
@@ -22,14 +23,16 @@ namespace UnitTests.Services
             _readFromSourceDelay = readFromSourceDelay;
         }
 
-        public override async Task<int> GetAsync() =>
+        public override async Task<int> GetAsync(string key) =>
             await _cache.GetOrCreateAsync<int, IToDoService>("todo_service_cache_key",
                 async () =>
                 {
                     try
                     {
+                        Console.Log($"{key} source fetch started");
                         await Task.Delay(_readFromSourceDelay);
-                        var value = await base.GetAsync();
+                        var value = await base.GetAsync(key);
+                        Console.Log($"{key} source fetch successfull");
                         return (value, true);
                     }
                     catch (Exception)

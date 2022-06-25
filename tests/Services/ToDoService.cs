@@ -5,6 +5,6 @@ namespace UnitTests.Services
 {
     public class ToDoService : IToDoService
     {
-        public virtual Task<int> GetAsync() => Task.FromResult(Db.State);
+        public virtual Task<int> GetAsync(string key) => Task.FromResult(Db.State);
     }
 }

@@ -29,12 +29,16 @@ namespace AutoCache
             var request = GetRequestParamsObject(sourceFetch, outdatedAt, expireAt);
             if (!string.IsNullOrEmpty(key))
             {
+                Console.Log("start");
                 // Fetch from cache
                 var (cacheValue, cacheHit) = await GetAsync<CacheValue<T>>(key);
 
                 // Cache hit and is not outdated
                 if (cacheHit && !cacheValue.IsOutdated())
+                {
+                    Console.Log("cache hit");
                     return cacheValue.Value;
+                }
 
                 // Cache update 
                 var task = GetFromCacheOrUpdateTheCache(key, request);
@@ -42,8 +46,10 @@ namespace AutoCache
                     ? TimeSpan.Zero
                     : timeout ?? _defaultTimeout;
                 await Threading.ExecuteExclusiveTask(key, task, sourceFetchTimeout);
-                (cacheValue, cacheHit) = task.Result;
-
+                Console.Log("update task executed.");
+                if (task.IsCompletedSuccessfully)
+                    (cacheValue, cacheHit) = task.Result;
+                Console.Log("update task " + (cacheHit ? "successed" : "failed") + " result " + cacheValue.Value);
                 if (cacheHit)
                     return cacheValue.Value;
             }
@@ -75,7 +81,7 @@ namespace AutoCache
             var (sourceValue, hasValue) = await request.SourceFetch();
             if (hasValue)
             {
-                var cacheValue = ConvertSourceValueToCacheValue(sourceValue, request.OutdatedAt);                
+                var cacheValue = ConvertSourceValueToCacheValue(sourceValue, request.OutdatedAt);
                 await SetAsync(key, cacheValue, request.ExpireAt ?? _defaultExpireAt);
                 return (cacheValue, true);
             }

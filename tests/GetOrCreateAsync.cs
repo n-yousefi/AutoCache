@@ -1,7 +1,8 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AutoCache;
+using FluentAssertions;
 using UnitTests.Mocks;
 using UnitTests.Services;
 using Xunit;
@@ -35,18 +36,18 @@ namespace UnitTests
 
             // Act
             Db.State = 1;
-            var result = await cachedSvc.GetAsync();
+            var r1 = await cachedSvc.GetAsync("r1");
 
             Db.State = 2;
-            var result2 = await cachedSvc.GetAsync();
+            var r2 = await cachedSvc.GetAsync("r2");
 
             await Task.Delay(TimeSpan.FromMilliseconds(110));
-            var result3 = await cachedSvc.GetAsync();
+            var r3 = await cachedSvc.GetAsync("r3");
 
             // Assert
-            Assert.Equal(1, result);
-            Assert.Equal(1, result2);
-            Assert.Equal(2, result3);
+            Assert.Equal(1, r1);
+            Assert.Equal(1, r2);
+            Assert.Equal(2, r3);
         }
 
         [Fact]
@@ -61,22 +62,21 @@ namespace UnitTests
 
             // Act
             Db.State = 1;
-            await cachedSvc.GetAsync();
+            await cachedSvc.GetAsync("r1");
 
             Db.State = 2;
             await Task.Delay(TimeSpan.FromMilliseconds(11));
-            var t1 = cachedSvc.GetAsync();
-            var t2 = cachedSvc.GetAsync();
-            var t3 = cachedSvc.GetAsync();
-            var t4 = cachedSvc.GetAsync();
+            var t1 = Task.Run(() => cachedSvc.GetAsync("t1"));
+            var t2 = Task.Run(() => cachedSvc.GetAsync("t2"));
+            var t3 = Task.Run(() => cachedSvc.GetAsync("t3"));
+            var t4 = Task.Run(() => cachedSvc.GetAsync("t4"));
+
             Task.WaitAll(t1, t2, t3, t4);
 
-
             // Assert
-            Assert.Equal(2, t1.Result);
-            Assert.Equal(1, t2.Result);
-            Assert.Equal(1, t3.Result);
-            Assert.Equal(1, t4.Result);
+            var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result };
+            results.Where(q => q == 1).Should().HaveCount(3);
+            results.Where(q => q == 2).Should().HaveCount(1);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,22 +16,25 @@ namespace AutoCache
             Task<T> task,
             TimeSpan waitMillisecondTimeout)
         {
-
+            Console.Log("execute exclusive task. timeout:" + waitMillisecondTimeout);
             var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-            if (await semaphore.WaitAsync(waitMillisecondTimeout))
+            if (!await semaphore.WaitAsync(waitMillisecondTimeout))
             {
-                try
-                {
-                    await task;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to run the background action.", ex);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                Console.Log("execute exclusive task. doesn't wait and run the task");
+                return;
+            }
+            try
+            {
+                Console.Log("execute exclusive task. run task after waiting");
+                await task;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to run the background action.", ex);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
     }

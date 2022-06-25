@@ -4,6 +4,6 @@ namespace UnitTests.Services
 {
     public interface IToDoService
     {
-        Task<int> GetAsync();
+        Task<int> GetAsync(string key);
     }
 }
