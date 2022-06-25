@@ -14,7 +14,10 @@ namespace UnitTests.Mocks
 
     public class Cache : CacheAdapter
     {
-        public Cache() : base(TimeSpan.FromMinutes(1), TimeSpan.FromHours(1))
+        public Cache(TimeSpan sourceFetchTimeout) : base(
+            TimeSpan.FromMinutes(1), 
+            TimeSpan.FromHours(1),
+            sourceFetchTimeout)
         {
 
         }

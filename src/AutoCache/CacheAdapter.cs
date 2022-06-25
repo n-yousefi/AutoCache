@@ -10,19 +10,21 @@ namespace AutoCache
     {
         private readonly TimeSpan _defaultOutdatedAt;
         private readonly TimeSpan _defaultExpireAt;
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new ConcurrentDictionary<string, SemaphoreSlim>();
+        private readonly TimeSpan _defaultTimeout;
 
-        public CacheAdapter(TimeSpan defaultOutdatedAt,
-            TimeSpan defaultExpireAt)
+        protected CacheAdapter(TimeSpan defaultOutdatedAt,
+            TimeSpan defaultExpireAt, TimeSpan defaultTimeout)
         {
             _defaultOutdatedAt = defaultOutdatedAt;
             _defaultExpireAt = defaultExpireAt;
+            _defaultTimeout = defaultTimeout;
         }
         public async Task<T> GetOrCreateAsync<T, TService>(
             string key,
             Func<Task<(T, bool)>> sourceFetch,
             TimeSpan? outdatedAt = null,
-            TimeSpan? expireAt = null)
+            TimeSpan? expireAt = null,
+            TimeSpan? timeout = null)
         {
             var request = GetRequestParamsObject(sourceFetch, outdatedAt, expireAt);
             if (!string.IsNullOrEmpty(key))
@@ -36,8 +38,11 @@ namespace AutoCache
 
                 // Cache update 
                 var task = GetFromCacheOrUpdateTheCache(key, request);
-                var waitMillisecondTimeout = cacheHit ? 0 : 30000;
-                (cacheValue, cacheHit) = await ExecuteExclusiveTask(key, task, waitMillisecondTimeout);
+                var sourceFetchTimeout = cacheHit
+                    ? TimeSpan.Zero
+                    : timeout ?? _defaultTimeout;
+                (cacheValue, cacheHit) = await 
+                    Threading.ExecuteExclusiveTask(key, task, sourceFetchTimeout);
 
                 if (cacheHit)
                     return cacheValue.Value;
@@ -49,63 +54,6 @@ namespace AutoCache
         {
             return new Request<T>(sourceFetch, outdatedAt, expireAt);
         }
-
-        
-        private async Task<(CacheValue<T>, bool)> ExclusiveCacheUpdateQQQQQQQQQQQ<T>(
-            string key,
-            Task<(CacheValue<T>,bool)> task,
-            bool shouldWait)
-        {
-            bool cacheHit = default;
-            CacheValue<T> cacheValue = default!;
-            // Wait for it on cache miss and don't wait when there is an outdated cache
-            var millisecondTimeout = shouldWait ? 30000 : 0;
-
-            var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-            if (await semaphore.WaitAsync(millisecondTimeout))
-            {
-                try
-                {
-                    (cacheValue, cacheHit) = await task;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to run the background action.", ex);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }
-            return (cacheValue, cacheHit);
-        }
-
-        private async Task<T> ExecuteExclusiveTask<T>(
-            string key,
-            Task<T> task,
-            int waitMillisecondTimeout)
-        {
-            T result = default;
-
-            var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-            if (await semaphore.WaitAsync(waitMillisecondTimeout))
-            {
-                try
-                {
-                    result = await task;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to run the background action.", ex);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }
-            return result;
-        }
-
 
 
         private async Task<(CacheValue<T>, bool)> GetFromCacheOrUpdateTheCache<T>(string key,
