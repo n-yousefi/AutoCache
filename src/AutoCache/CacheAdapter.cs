@@ -41,19 +41,56 @@ namespace AutoCache
                 }
 
                 // Cache update 
-                var task = GetFromCacheOrUpdateTheCache(key, request);
                 var sourceFetchTimeout = cacheHit
                     ? TimeSpan.Zero
                     : timeout ?? _defaultTimeout;
-                await Threading.ExecuteExclusiveTask(key, task, sourceFetchTimeout);
+                var (updatedCacheValue, updatedCacheHit) = await ExecuteExclusiveTask(key, request, sourceFetchTimeout);
                 Console.Log("update task executed.");
-                if (task.IsCompletedSuccessfully)
-                    (cacheValue, cacheHit) = task.Result;
+                if (updatedCacheHit)
+                    (cacheValue, cacheHit) = (updatedCacheValue, updatedCacheHit);
+                else Console.Log("task skiped.");
                 Console.Log("update task " + (cacheHit ? "successed" : "failed") + " result " + cacheValue.Value);
+
                 if (cacheHit)
                     return cacheValue.Value;
             }
             throw new Exception("Cache update timeout expired.");
+        }
+
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks
+            = new ConcurrentDictionary<string, SemaphoreSlim>();
+
+        private async Task<(CacheValue<T>, bool)> ExecuteExclusiveTask<T>(
+            string key,
+            Request<T> request,
+            TimeSpan waitMillisecondTimeout)
+        {
+            CacheValue<T> cacheValue = null;
+            bool cacheHit = false;
+            Console.Log("execute exclusive task. timeout:" + waitMillisecondTimeout);
+            var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            if (!await semaphore.WaitAsync(waitMillisecondTimeout))
+            {
+                Console.Log("execute exclusive task. doesn't wait and run the task");
+
+            }
+            else
+            {
+                try
+                {
+                    Console.Log("execute exclusive task. run task after waiting");
+                    (cacheValue, cacheHit) = await GetFromCacheOrUpdateTheCache(key, request);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to run the background action.", ex);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
+            return (cacheValue, cacheHit);
         }
 
         private Request<T> GetRequestParamsObject<T>(Func<Task<(T, bool)>> sourceFetch, TimeSpan? outdatedAt, TimeSpan? expireAt)

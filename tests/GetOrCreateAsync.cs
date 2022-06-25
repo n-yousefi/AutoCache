@@ -56,9 +56,9 @@ namespace UnitTests
             // Arrange
             var cachedSvc = GetService(
                 sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
-                outdatedAt: TimeSpan.FromMilliseconds(10),
+                outdatedAt: TimeSpan.FromMilliseconds(1),
                 expireAt: TimeSpan.FromMilliseconds(1000000),
-                readFromSourceDelay: TimeSpan.FromMilliseconds(10000));
+                readFromSourceDelay: TimeSpan.FromMilliseconds(1000));
 
             // Act
             Db.State = 1;
@@ -71,12 +71,16 @@ namespace UnitTests
             var t3 = Task.Run(() => cachedSvc.GetAsync("t3"));
             var t4 = Task.Run(() => cachedSvc.GetAsync("t4"));
 
+            await Task.Delay(TimeSpan.FromMilliseconds(10000));
+
             Task.WaitAll(t1, t2, t3, t4);
 
+            var t7 = cachedSvc.GetAsync("t7");
+
             // Assert
-            var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result };
+            var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result, t7.Result };
             results.Where(q => q == 1).Should().HaveCount(3);
-            results.Where(q => q == 2).Should().HaveCount(1);
+            results.Where(q => q == 2).Should().HaveCount(2);
         }
     }
 }
