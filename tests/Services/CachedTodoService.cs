@@ -24,6 +24,6 @@ namespace UnitTests.Services
                     {
                         return (0, false);
                     }
-                }, TimeSpan.FromMilliseconds(10), TimeSpan.FromSeconds(1));
+                }, TimeSpan.FromMilliseconds(60000), TimeSpan.FromSeconds(1));
     }
 }

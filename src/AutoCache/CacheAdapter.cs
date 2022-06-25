@@ -35,7 +35,9 @@ namespace AutoCache
                     return cacheValue.Value;
 
                 // Cache update 
-                (cacheValue, cacheHit) = await ExecuteWithExclusiveLock(key, request, !cacheHit);
+                var task = GetFromCacheOrUpdateTheCache(key, request);
+                var waitMillisecondTimeout = cacheHit ? 0 : 30000;
+                (cacheValue, cacheHit) = await ExecuteExclusiveTask(key, task, waitMillisecondTimeout);
 
                 if (cacheHit)
                     return cacheValue.Value;
@@ -48,44 +50,63 @@ namespace AutoCache
             return new Request<T>(sourceFetch, outdatedAt, expireAt);
         }
 
-        private async Task<(CacheValue<T>,bool)> ExecuteWithExclusiveLock<T>(
+        
+        private async Task<(CacheValue<T>, bool)> ExclusiveCacheUpdateQQQQQQQQQQQ<T>(
             string key,
-            Request<T> request,
+            Task<(CacheValue<T>,bool)> task,
             bool shouldWait)
         {
             bool cacheHit = default;
             CacheValue<T> cacheValue = default!;
             // Wait for it on cache miss and don't wait when there is an outdated cache
-            var millisecondTimeout = shouldWait ? 30000: 0;
+            var millisecondTimeout = shouldWait ? 30000 : 0;
 
             var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             if (await semaphore.WaitAsync(millisecondTimeout))
             {
-                (cacheValue, cacheHit) = await TryToExecuteOrReleaseSemaphore(key, request, semaphore);
+                try
+                {
+                    (cacheValue, cacheHit) = await task;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to run the background action.", ex);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
             }
             return (cacheValue, cacheHit);
         }
 
-        private async Task<(CacheValue<T>, bool)> TryToExecuteOrReleaseSemaphore<T>(string key,
-            Request<T> request,
-            SemaphoreSlim semaphore)
+        private async Task<T> ExecuteExclusiveTask<T>(
+            string key,
+            Task<T> task,
+            int waitMillisecondTimeout)
         {
-            CacheValue<T> cacheValue;
-            bool cacheHit;
-            try
+            T result = default;
+
+            var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            if (await semaphore.WaitAsync(waitMillisecondTimeout))
             {
-                (cacheValue, cacheHit) = await GetFromCacheOrUpdateTheCache(key, request);
+                try
+                {
+                    result = await task;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to run the background action.", ex);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to run the background action.", ex);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-            return (cacheValue, cacheHit);
+            return result;
         }
+
+
 
         private async Task<(CacheValue<T>, bool)> GetFromCacheOrUpdateTheCache<T>(string key,
             Request<T> request)

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoCache;
 using UnitTests.Mocks;
@@ -39,27 +40,13 @@ namespace UnitTests
         {
             var cachedSvc = new CachedTodoService(Cache);
             Db.State = 1; // Db state changed.            
-            var result = await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();                      
-            await cachedSvc.GetAsync();  
+            var result = await cachedSvc.GetAsync();
+            
+            var t1 = cachedSvc.GetAsync(); 
+            var t2 = cachedSvc.GetAsync();
+            var t3 = cachedSvc.GetAsync();
+            var t4 = cachedSvc.GetAsync();
+            Task.WaitAll(t1, t2, t3, t4);
         }
     }
 }
