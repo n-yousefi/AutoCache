@@ -34,14 +34,14 @@ namespace UnitTests
                 readFromSourceDelay: TimeSpan.FromMilliseconds(0));
 
             // Act
-            Db.State = 1;       
-            var result = await cachedSvc.GetAsync();                        
+            Db.State = 1;
+            var result = await cachedSvc.GetAsync();
 
             Db.State = 2;
-            var result2 = await cachedSvc.GetAsync(); 
+            var result2 = await cachedSvc.GetAsync();
 
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            var result3 = await cachedSvc.GetAsync(); 
+            await Task.Delay(TimeSpan.FromMilliseconds(110));
+            var result3 = await cachedSvc.GetAsync();
 
             // Assert
             Assert.Equal(1, result);
@@ -50,40 +50,33 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task FirstShortCacheMissGetLongCacheValueAndTriggerCacheUpdate()
+        public async Task CheckOutdatedAtAndCoalescing()
         {
+            // Arrange
             var cachedSvc = GetService(
                 sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
-                outdatedAt: TimeSpan.FromMilliseconds(2000),
-                expireAt: TimeSpan.FromMilliseconds(30),
-                readFromSourceDelay: TimeSpan.FromMilliseconds(30));
+                outdatedAt: TimeSpan.FromMilliseconds(10),
+                expireAt: TimeSpan.FromMilliseconds(1000000),
+                readFromSourceDelay: TimeSpan.FromMilliseconds(100));
 
-            Db.State = 1; // Db state changed.            
-            var result = await cachedSvc.GetAsync(); // Trigger cache update.                        
+            // Act
+            Db.State = 1;
+            await cachedSvc.GetAsync();
 
-            Db.State = 2; // Db state changed.
-            var result2 = await cachedSvc.GetAsync(); // Cache is outdated. Cache update triggered. Until then, last cached state returned to prevent bottleneck
+            Db.State = 2;
+            await Task.Delay(TimeSpan.FromMilliseconds(11));
+            var t1 = cachedSvc.GetAsync();
+            var t2 = cachedSvc.GetAsync();
+            var t3 = cachedSvc.GetAsync();
+            var t4 = cachedSvc.GetAsync();
+            Task.WaitAll(t1, t2, t3, t4);
 
-            await Task.Delay(10);
-            var result3 = await cachedSvc.GetAsync(); // Fresh data reterned
 
-            Assert.Equal(1, result);
-            Assert.Equal(1, result2);
-            Assert.Equal(2, result3);
-        }
-
-        [Fact]
-        public async Task CacheCoalescing()
-        {
-            //var cachedSvc = new CachedTodoService(Cache);
-            //Db.State = 1; // Db state changed.            
-            //var result = await cachedSvc.GetAsync();
-            //
-            //var t1 = cachedSvc.GetAsync(); 
-            //var t2 = cachedSvc.GetAsync();
-            //var t3 = cachedSvc.GetAsync();
-            //var t4 = cachedSvc.GetAsync();
-            //Task.WaitAll(t1, t2, t3, t4);
+            // Assert
+            Assert.Equal(2, t1.Result);
+            Assert.Equal(1, t2.Result);
+            Assert.Equal(1, t3.Result);
+            Assert.Equal(1, t4.Result);
         }
     }
 }
