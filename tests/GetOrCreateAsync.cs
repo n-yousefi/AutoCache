@@ -57,7 +57,7 @@ namespace UnitTests
                 sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
                 outdatedAt: TimeSpan.FromMilliseconds(10),
                 expireAt: TimeSpan.FromMilliseconds(1000000),
-                readFromSourceDelay: TimeSpan.FromMilliseconds(100));
+                readFromSourceDelay: TimeSpan.FromMilliseconds(10000));
 
             // Act
             Db.State = 1;

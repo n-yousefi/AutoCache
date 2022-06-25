@@ -41,8 +41,8 @@ namespace AutoCache
                 var sourceFetchTimeout = cacheHit
                     ? TimeSpan.Zero
                     : timeout ?? _defaultTimeout;
-                (cacheValue, cacheHit) = await 
-                    Threading.ExecuteExclusiveTask(key, task, sourceFetchTimeout);
+                await Threading.ExecuteExclusiveTask(key, task, sourceFetchTimeout);
+                (cacheValue, cacheHit) = task.Result;
 
                 if (cacheHit)
                     return cacheValue.Value;
