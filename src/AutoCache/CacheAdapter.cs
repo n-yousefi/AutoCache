@@ -36,7 +36,7 @@ namespace AutoCache
                 // Cache hit and is not outdated
                 if (cacheHit && !cacheValue.IsOutdated())
                 {
-                    Console.Log("cache hit");
+                    Console.Log("cache hitted and returned");
                     return cacheValue.Value;
                 }
 
@@ -45,11 +45,10 @@ namespace AutoCache
                     ? TimeSpan.Zero
                     : timeout ?? _defaultTimeout;
                 var (updatedCacheValue, updatedCacheHit) = await ExecuteExclusiveTask(key, request, sourceFetchTimeout);
-                Console.Log("update task executed.");
                 if (updatedCacheHit)
                     (cacheValue, cacheHit) = (updatedCacheValue, updatedCacheHit);
-                else Console.Log("task skiped.");
-                Console.Log("update task " + (cacheHit ? "successed" : "failed") + " result " + cacheValue.Value);
+
+                Console.Log((cacheHit ? "successed" : "failed") + " with result " + cacheValue.Value);
 
                 if (cacheHit)
                     return cacheValue.Value;
@@ -67,28 +66,26 @@ namespace AutoCache
         {
             CacheValue<T> cacheValue = null;
             bool cacheHit = false;
-            Console.Log("execute exclusive task. timeout:" + waitMillisecondTimeout);
+
             var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             if (!await semaphore.WaitAsync(waitMillisecondTimeout))
             {
-                Console.Log("execute exclusive task. doesn't wait and run the task");
-
+                Console.Log("use outdated data and doesn't wait for SEMAPHORE");
+                return (cacheValue, cacheHit);
             }
-            else
+            try
             {
-                try
-                {
-                    Console.Log("execute exclusive task. run task after waiting");
-                    (cacheValue, cacheHit) = await GetFromCacheOrUpdateTheCache(key, request);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to run the background action.", ex);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                Console.Log("SEMAPHORE locked and task started; timeout:" + waitMillisecondTimeout);
+                (cacheValue, cacheHit) = await GetFromCacheOrUpdateTheCache(key, request);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to run the background action.", ex);
+            }
+            finally
+            {
+                semaphore.Release();
+                Console.Log("SEMAPHORE released");
             }
             return (cacheValue, cacheHit);
         }

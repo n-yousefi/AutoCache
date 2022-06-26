@@ -51,7 +51,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task CheckOutdatedAtAndCoalescing()
+        public async Task CheckOutdatedAt()
         {
             // Arrange
             var cachedSvc = GetService(
@@ -81,6 +81,31 @@ namespace UnitTests
             var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result, t7.Result };
             results.Where(q => q == 1).Should().HaveCount(3);
             results.Where(q => q == 2).Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task Coalescing()
+        {
+            // Arrange
+            var cachedSvc = GetService(
+                sourceFetchTimeout: TimeSpan.FromMilliseconds(30000),
+                outdatedAt: TimeSpan.FromMilliseconds(30000),
+                expireAt: TimeSpan.FromMilliseconds(60000),
+                readFromSourceDelay: TimeSpan.FromMilliseconds(1000));
+
+            // Act
+            Db.State = 1;
+            await Task.Delay(TimeSpan.FromMilliseconds(11));
+            var t1 = Task.Run(() => cachedSvc.GetAsync("t1"));
+            var t2 = Task.Run(() => cachedSvc.GetAsync("t2"));
+            var t3 = Task.Run(() => cachedSvc.GetAsync("t3"));
+            var t4 = Task.Run(() => cachedSvc.GetAsync("t4"));
+
+            await Task.Delay(TimeSpan.FromMilliseconds(10000));
+
+            // Assert
+            var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result };
+            results.Where(q => q == 1).Should().HaveCount(4);
         }
     }
 }
