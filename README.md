@@ -1,18 +1,17 @@
 # Why AutoCache?
 
-Cache misses often causes a large number of requests being referred to the database, service or resource at the same time, until the data is cached again. This can reduce system performance and functionality.
-
-With cache coalescing and using two level response, there is no real cache missess.
+Cache misses often cause many requests to be referred to the database, service, or resource simultaneously until the data is cached again. It can reduce system performance and functionality.
+With cache coalescing and using a two-level response, there are no real cache misses.
 
 # How it works?
 
-Each cache keys have "outdate" and "expire" times. When a key becomes outdated, the cache update starts with first incomming request. In the meanwhile, all new requests receive the outdated data and do not wait.
+Each cache keys have "outdate" and "expire" times. When a key gets "outdated", the cache update starts with the first incoming request. In the meanwhile, all new requests receive outdated data and do not wait.
 
 ## Coalescing
 
-If the key miss and there is no outdated value, a request will fire the cache update task and the rest wait for the result to be ready.
+If the key is missing and there is no outdated value, a request will fire the cache update task. All other request wait for the result to be ready.
 
-Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring all of them to the database, all requests will get outdated data from cache and the database is called only once (to update the cache).
+Suppose hundreds of requests arrived at the same time, looking for an outdated cache item. Instead of referring all of them to the database, all requests will get outdated data from the cache and the database is called only once (to update the cache).
 
 # Installation
 
