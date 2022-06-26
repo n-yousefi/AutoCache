@@ -19,7 +19,7 @@ namespace AutoCache
             _defaultExpireAt = defaultExpireAt;
             _defaultTimeout = defaultTimeout;
         }
-        public async Task<T> GetOrCreateAsync<T, TService>(
+        public async Task<T> GetOrCreateAsync<T>(
             string key,
             Func<Task<(T, bool)>> sourceFetch,
             TimeSpan? outdatedAt = null,
@@ -36,7 +36,7 @@ namespace AutoCache
                 // Cache hit and is not outdated
                 if (cacheHit && !cacheValue.IsOutdated())
                 {
-                    Console.Log("cache hitted and returned");
+                    Console.Log("cache hit and returned");
                     return cacheValue.Value;
                 }
 
@@ -45,10 +45,11 @@ namespace AutoCache
                     ? TimeSpan.Zero
                     : timeout ?? _defaultTimeout;
                 var (updatedCacheValue, updatedCacheHit) = await ExecuteExclusiveTask(key, request, sourceFetchTimeout);
-                if (updatedCacheHit)
+                
+                if (updatedCacheHit && updatedCacheValue != null)
                     (cacheValue, cacheHit) = (updatedCacheValue, updatedCacheHit);
 
-                Console.Log((cacheHit ? "successed" : "failed") + " with result " + cacheValue.Value);
+                Console.Log((cacheHit ? "succeed" : "failed") + " with result " + cacheValue.Value);
 
                 if (cacheHit)
                     return cacheValue.Value;
@@ -59,13 +60,13 @@ namespace AutoCache
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks
             = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        private async Task<(CacheValue<T>, bool)> ExecuteExclusiveTask<T>(
+        private async Task<(CacheValue<T>?, bool)> ExecuteExclusiveTask<T>(
             string key,
             Request<T> request,
             TimeSpan waitMillisecondTimeout)
         {
-            CacheValue<T> cacheValue = null;
-            bool cacheHit = false;
+            CacheValue<T>? cacheValue = default;
+            bool cacheHit = default;
 
             var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             if (!await semaphore.WaitAsync(waitMillisecondTimeout))

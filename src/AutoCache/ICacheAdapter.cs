@@ -5,7 +5,7 @@ namespace AutoCache
 {
     public interface ICacheAdapter
     {
-        public Task<T> GetOrCreateAsync<T, TService>(string key,
+        public Task<T> GetOrCreateAsync<T>(string key,
             Func<Task<(T, bool)>> dbFetch,
             TimeSpan? outdatedAt = null,
             TimeSpan? expireAt = null,

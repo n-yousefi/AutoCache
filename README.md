@@ -2,11 +2,15 @@
 
 Cache misses often causes a large number of requests being referred to the database, service or resource at the same time, until the data is cached again. This can reduce system performance and functionality.
 
-With AutoCache, there is no real cache missess.
+With cache coalescing and using two level response, there is no real cache missess.
 
 # How it works?
 
-Each cache keys have outdate and expir times. When the outdate time expires, the cache starts updating with the first request. But the request does not wait, and receives the outdated data.
+Each cache keys have "outdate" and "expire" times. When a key becomes outdated, the cache update starts with first incomming request. In the meanwhile, all new requests receive the outdated data and do not wait.
+
+## Coalescing
+
+If the key miss and there is no outdated value, a request will fire the cache update task and the rest wait for the result to be ready.
 
 Suppose hundreds of requests arived at same time, looking for an outdated cache item. Instead of referring all of them to the database, all requests will get outdated data from cache and the database is called only once (to update the cache).
 
@@ -30,10 +34,11 @@ PM> Install-Package AutoCache
         public abstract Task<(T, bool)> GetAsync<T>(string key);
         public abstract Task RemoveAsync(string key);
 
-        public Task<T> GetOrCreateAsync<T, TService>(string key,
-            Func<TService, bool, Task<(T, bool)>> DbFetch,
+        public Task<T> GetOrCreateAsync<T>(string key,
+            Func<Task<(T, bool)>> dbFetch,
             TimeSpan? outdatedAt = null,
-            TimeSpan? expireAt = null);
+            TimeSpan? expireAt = null,
+            TimeSpan? timeout = null);
     }
 
 First create an adapter for your cache service (or database):
@@ -47,9 +52,9 @@ Then inject your adapter in ConfigureServices:
 
     services.AddSingleton<IMyCacheAdapter>(provider =>
         new MyCacheAdapter(
-            provider.GetService<IServiceScopeFactory>(),
             TimeSpan.FromMinutes(2), // DefaultOutdatedAt
-            TimeSpan.FromHours(1) //DefaultExpiredAt
+            TimeSpan.FromHours(1), //DefaultExpiredAt
+            TimeSpan.FromSeconds(30) //DefaultSourceFetchTimeout
         ));
 
 Now you can use it:
@@ -73,8 +78,8 @@ Now you can use it:
         public CachedTodoService(IMyCacheAdapter cache) => _cache = cache;
 
         public override async Task<int> GetAsync() =>
-            await _cache.GetOrCreateAsync<int, IToDoService>("todo_service_cache_key",
-                async (toDoService, isInUpdate) =>
+            await _cache.GetOrCreateAsync<int>("todo_service_cache_key",
+                async () =>
                 {
                     try
                     {
