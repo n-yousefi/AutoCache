@@ -40,7 +40,7 @@ PM> Install-Package AutoCache
             TimeSpan? timeout = null);
     }
 
-First create an adapter for your cache service (or database):
+First create your cache adapter:
 
     public interface IMyCacheAdapter: ICacheAdapter{}
     public class MyCacheAdapter : CacheAdapter,IMyCacheAdapter{
