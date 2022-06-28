@@ -7,11 +7,11 @@ With cache coalescing and using a two-level response, there are no real cache mi
 
 Each cache keys have "outdate" and "expire" times. When a key gets "outdated", the cache update starts with the first incoming request. In the meanwhile, all new requests receive outdated data and do not wait.
 
+Suppose hundreds of requests arrived at the same time, looking for an outdated cache item. Instead of referring all of them to the database, all requests will get outdated data from the cache and the database is called only once (to update the cache).
+
 ## Coalescing
 
 If the key is missing and there is no outdated value, a request will fire the cache update task. All other request wait for the result to be ready.
-
-Suppose hundreds of requests arrived at the same time, looking for an outdated cache item. Instead of referring all of them to the database, all requests will get outdated data from the cache and the database is called only once (to update the cache).
 
 # Installation
 
