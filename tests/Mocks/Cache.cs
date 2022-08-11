@@ -17,7 +17,8 @@ namespace UnitTests.Mocks
         public Cache(TimeSpan sourceFetchTimeout) : base(
             TimeSpan.FromMinutes(1), 
             TimeSpan.FromHours(1),
-            sourceFetchTimeout)
+            sourceFetchTimeout,
+            new ConsoleLogger())
         {
 
         }

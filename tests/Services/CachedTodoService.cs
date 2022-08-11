@@ -29,10 +29,10 @@ namespace UnitTests.Services
                 {
                     try
                     {
-                        Console.Log($"{key} source fetch started");
+                        //Console.Log($"{key} source fetch started");
                         await Task.Delay(_readFromSourceDelay);
                         var value = await base.GetAsync(key);
-                        Console.Log($"{key} source fetch successfull");
+                        //Console.Log($"{key} source fetch successfull");
                         return (value, true);
                     }
                     catch (Exception)
