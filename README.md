@@ -3,6 +3,8 @@
 Cache misses often cause many requests to be referred to the resource (database/api/...), simultaneously until the data is cached again. It can reduce system performance and functionality.
 With cache coalescing and using a two-level response, there are no real cache misses.
 
+I am currently using this library for a heavy-load application. This program receives more than **20 million** requests per day and handles them with redis using AutoCache.
+
 # How it works?
 
 Each cache keys have "outdate" and "expire" times. When a key gets "outdated", the cache update starts with the first incoming request. In the meanwhile, all new requests receive outdated data and do not wait.
