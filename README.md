@@ -1,9 +1,9 @@
 # Why AutoCache?
 
-Cache misses often cause many requests to be referred to the resource (database/api/...), simultaneously until the data is cached again. It can reduce system performance and functionality.
+Cache misses often cause many requests to be referred to the resource, simultaneously until the data is cached again. It can reduce system performance and functionality.
 With cache coalescing and using a two-level response, there are no real cache misses.
 
-I am currently using this library for a heavy-load application. This program receives more than **20 million** requests per day and handles them with redis using AutoCache.
+I am currently using this library for a heavy-load application. This program receives more than **30 million** requests per day and handles them with redis using AutoCache.
 
 # How it works?
 
@@ -36,7 +36,7 @@ PM> Install-Package AutoCache
         public abstract Task RemoveAsync(string key);
 
         public Task<T> GetOrCreateAsync<T>(string key,
-            Func<Task<(T, bool)>> dbFetch,
+            Func<Task<(T, bool)>> resourceFetch,
             TimeSpan? outdatedAt = null,
             TimeSpan? expireAt = null,
             TimeSpan? timeout = null);
@@ -68,7 +68,7 @@ Now you can use it:
     public class ToDoService: IToDoService
     {
         public virtual async Task<int> GetAsync() {
-            // read from DB, service or resource ...
+            // read from resource (database,api, etc.), service or resource ...
             throw new NotImplementedException();
         };
     }
