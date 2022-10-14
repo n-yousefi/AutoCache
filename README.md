@@ -8,7 +8,7 @@ When you are caching data from a resource, there are caching patterns that you c
 
 Cache misses often cause many requests to be referred to the resource, simultaneously until the data is cached again. It can reduce system performance and functionality.
 
-![cache-aside](https://github.com/n-yousefi/AutoCache/blob/main/img/cache-aside.jpg)
+![cache-aside](https://github.com/n-yousefi/AutoCache/blob/master/img/cache-aside.jpg)
 
 # Why AutoCache?
 
@@ -20,7 +20,7 @@ I am currently using this library for a heavy-load application. This program rec
 
 Each cache keys have "outdate" and "expire" times. When a key gets "outdated", the cache update starts with the first incoming request. In the meanwhile, all new requests receive outdated data and do not wait.
 
-![cache-aside](https://github.com/n-yousefi/AutoCache/blob/main/img/autocache.jpg)
+![cache-aside](https://github.com/n-yousefi/AutoCache/blob/master/img/autocache.jpg)
 
 Suppose hundreds of requests arrived at the same time, looking for an outdated cache item. Instead of referring all of them to the resource, all requests will get outdated data from the cache and the resource is called only once (to update the cache).
 
@@ -28,7 +28,7 @@ Suppose hundreds of requests arrived at the same time, looking for an outdated c
 
 If the key is missing and there is no outdated value, a request will fire the cache update task. All other request wait for the result to be ready.
 
-![cache-aside](https://github.com/n-yousefi/AutoCache/blob/main/img/coalescing.jpg)
+![cache-aside](https://github.com/n-yousefi/AutoCache/blob/master/img/coalescing.jpg)
 
 # Installation
 
