@@ -2,6 +2,8 @@ name: "Publish Packages"
 on:
   push:
     branches: [nuget]
+  release:
+    types: [created]
 env:
   PROJECT_PATH: "src/AutoCache/AutoCache.csproj"
   PACKAGE_OUTPUT_DIR: ${{github.workspace}}/output
