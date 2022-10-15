@@ -8,7 +8,7 @@ When you are caching data from a resource, there are caching patterns that you c
 
 Cache misses often cause many requests to be referred to the resource, simultaneously until the data is cached again. It can reduce system performance and functionality.
 
-![cache-aside](https://github.com/n-yousefi/AutoCache/blob/master/img/cache-aside.jpg)
+![cache-aside](img/cache-aside.jpg)
 
 # Why AutoCache?
 
@@ -18,17 +18,19 @@ I am currently using this library for a heavy-load application. This program rec
 
 # How it works?
 
-Each cache keys have "outdate" and "expire" times. When a key gets "outdated", the cache update starts with the first incoming request. In the meanwhile, all new requests receive outdated data and do not wait.
+AutoCache adds a "refresh" time to each key. When it's time to refresh a key, the cache update starts with the first incoming request. All requests receive the response without waiting for the update.
 
-![cache-aside](https://github.com/n-yousefi/AutoCache/blob/master/img/autocache.jpg)
+The "refresh" and "expiration" times get updated after each refresh.
 
-Suppose hundreds of requests arrived at the same time, looking for an outdated cache item. Instead of referring all of them to the resource, all requests will get outdated data from the cache and the resource is called only once (to update the cache).
+![cache-aside](img/autocache.jpg)
+
+Depending on the type of business, by choosing a long time for expiration and a short time for refreshing, it avoided cache misses and consecutive waits.
 
 ## Coalescing
 
-If the key is missing and there is no outdated value, a request will fire the cache update task. All other request wait for the result to be ready.
+On the cache key missing, only the first request will fire the cache update task. All other requests wait for the result to be ready.
 
-![cache-aside](https://github.com/n-yousefi/AutoCache/blob/master/img/coalescing.jpg)
+![cache-aside](img/coalescing.jpg)
 
 # Installation
 
@@ -52,7 +54,7 @@ PM> Install-Package AutoCache
 
         public Task<T> GetOrCreateAsync<T>(string key,
             Func<Task<(T, bool)>> resourceFetch,
-            TimeSpan? outdatedAt = null,
+            TimeSpan? refreshAt = null,
             TimeSpan? expireAt = null,
             TimeSpan? timeout = null);
     }
@@ -68,7 +70,7 @@ Then inject your adapter in ConfigureServices:
 
     services.AddSingleton<IMyCacheAdapter>(provider =>
         new MyCacheAdapter(
-            TimeSpan.FromMinutes(2), // DefaultOutdatedAt
+            TimeSpan.FromMinutes(2), // DefaultRefreshAt
             TimeSpan.FromHours(1), //DefaultExpiredAt
             TimeSpan.FromSeconds(30) //DefaultSourceFetchTimeout
         ));
@@ -108,3 +110,12 @@ Now you can use it:
                     }
                 });
     }
+
+
+## Changelog
+
+[Learn about the latest improvements][changelog].
+
+
+
+[changelog]: CHANGELOG.md

@@ -10,15 +10,15 @@ namespace UnitTests.Services
         private readonly ICacheAdapter _cache;
         private readonly TimeSpan _readFromSourceDelay;
         private readonly TimeSpan _expireAt;
-        private readonly TimeSpan _outdatedAt;
+        private readonly TimeSpan _refreshAt;
 
         public CachedTodoService(ICacheAdapter cache,
-            TimeSpan outdatedAt,
+            TimeSpan refreshAt,
             TimeSpan expireAt,
             TimeSpan readFromSourceDelay)
         {
             _cache = cache;
-            _outdatedAt = outdatedAt;
+            _refreshAt = refreshAt;
             _expireAt = expireAt;
             _readFromSourceDelay = readFromSourceDelay;
         }
@@ -39,7 +39,7 @@ namespace UnitTests.Services
                     {
                         return (0, false);
                     }
-                }, _outdatedAt,
+                }, _refreshAt,
                 _expireAt);
     }
 }

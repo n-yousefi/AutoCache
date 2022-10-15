@@ -7,7 +7,7 @@ namespace AutoCache
     {
         public Task<T> GetOrCreateAsync<T>(string key,
             Func<Task<(T, bool)>> dbFetch,
-            TimeSpan? outdatedAt = null,
+            TimeSpan? refreshAt = null,
             TimeSpan? expireAt = null,
             TimeSpan? timeout = null);
 

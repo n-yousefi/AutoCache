@@ -13,12 +13,12 @@ namespace UnitTests
     {
         private CachedTodoService GetService(
             TimeSpan sourceFetchTimeout,
-            TimeSpan outdatedAt,
+            TimeSpan refreshAt,
             TimeSpan expireAt,
             TimeSpan readFromSourceDelay)
         {
             return new CachedTodoService(new Cache(sourceFetchTimeout),
-                outdatedAt,
+                refreshAt,
                 expireAt,
                 readFromSourceDelay
             );
@@ -30,7 +30,7 @@ namespace UnitTests
             // Arrange
             var cachedSvc = GetService(
                 sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
-                outdatedAt: TimeSpan.FromMilliseconds(100),
+                refreshAt: TimeSpan.FromMilliseconds(100),
                 expireAt: TimeSpan.FromMilliseconds(100),
                 readFromSourceDelay: TimeSpan.FromMilliseconds(0));
 
@@ -51,12 +51,12 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task CheckOutdatedAt()
+        public async Task CheckRefreshAt()
         {
             // Arrange
             var cachedSvc = GetService(
                 sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
-                outdatedAt: TimeSpan.FromMilliseconds(1),
+                refreshAt: TimeSpan.FromMilliseconds(1),
                 expireAt: TimeSpan.FromMilliseconds(1000000),
                 readFromSourceDelay: TimeSpan.FromMilliseconds(1000));
 
@@ -89,7 +89,7 @@ namespace UnitTests
             // Arrange
             var cachedSvc = GetService(
                 sourceFetchTimeout: TimeSpan.FromMilliseconds(30000),
-                outdatedAt: TimeSpan.FromMilliseconds(30000),
+                refreshAt: TimeSpan.FromMilliseconds(30000),
                 expireAt: TimeSpan.FromMilliseconds(60000),
                 readFromSourceDelay: TimeSpan.FromMilliseconds(1000));
 

@@ -7,14 +7,14 @@ namespace AutoCache.Models
 {
     internal class Request<T>
     {
-        internal Request(Func<Task<(T, bool)>> sourceFetch, TimeSpan? outdatedAt=null, TimeSpan? expireAt = null)
+        internal Request(Func<Task<(T, bool)>> sourceFetch, TimeSpan? refreshAt = null, TimeSpan? expireAt = null)
         {
             SourceFetch = sourceFetch;
-            OutdatedAt = outdatedAt;
+            RefreshAt = refreshAt;
             ExpireAt = expireAt;
         }
         public Func<Task<(T, bool)>> SourceFetch { get; set; }
-        public TimeSpan? OutdatedAt { get; set; }
+        public TimeSpan? RefreshAt { get; set; }
         public TimeSpan? ExpireAt { get; set; }
     }
 }

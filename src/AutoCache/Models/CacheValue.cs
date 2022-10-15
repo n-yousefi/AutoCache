@@ -2,11 +2,11 @@
 
 namespace AutoCache.Models
 {
-    public class CacheValue<T> 
+    public class CacheValue<T>
     {
-        public DateTime OutdatedAt { get; set; }
+        public DateTime RefreshAt { get; set; }
         public T Value { get; set; } = default!;
 
-        public bool IsOutdated() => DateTime.Now >= OutdatedAt;
+        public bool IsRefreshed() => DateTime.Now >= RefreshAt;
     }
 }

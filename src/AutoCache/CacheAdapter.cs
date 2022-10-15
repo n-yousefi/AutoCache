@@ -9,15 +9,15 @@ namespace AutoCache
 {
     public abstract class CacheAdapter : ICacheAdapter
     {
-        private readonly TimeSpan _defaultOutdatedAt;
+        private readonly TimeSpan _defaultRefreshAt;
         private readonly TimeSpan _defaultExpireAt;
         private readonly TimeSpan _defaultTimeout;
         private readonly ILogger _logger;
 
-        protected CacheAdapter(TimeSpan defaultOutdatedAt,
+        protected CacheAdapter(TimeSpan defaultRefreshAt,
             TimeSpan defaultExpireAt, TimeSpan defaultTimeout, ILogger logger)
         {
-            _defaultOutdatedAt = defaultOutdatedAt;
+            _defaultRefreshAt = defaultRefreshAt;
             _defaultExpireAt = defaultExpireAt;
             _defaultTimeout = defaultTimeout;
             _logger = logger;
@@ -26,19 +26,19 @@ namespace AutoCache
         public async Task<T> GetOrCreateAsync<T>(
             string key,
             Func<Task<(T, bool)>> sourceFetch,
-            TimeSpan? outdatedAt = null,
+            TimeSpan? refreshAt = null,
             TimeSpan? expireAt = null,
             TimeSpan? timeout = null)
         {
-            var request = GetRequestParamsObject(sourceFetch, outdatedAt, expireAt);
+            var request = GetRequestParamsObject(sourceFetch, refreshAt, expireAt);
             if (!string.IsNullOrEmpty(key))
             {
                 _logger.LogD($"start caching {key}");
                 // Fetch from cache
                 var (cacheValue, cacheHit) = await GetAsync<CacheValue<T>>(key);
 
-                // Cache hit and is not outdated
-                if (cacheHit && !cacheValue.IsOutdated())
+                // Cache hit and is not refreshed
+                if (cacheHit && !cacheValue.IsRefreshed())
                 {
                     _logger.LogD($"cache hit and returned {key}");
                     return cacheValue.Value;
@@ -49,10 +49,10 @@ namespace AutoCache
                     ? TimeSpan.Zero
                     : timeout ?? _defaultTimeout;
 
-                // When timeout happens, it returns false to use outdated data
+                // When timeout happens, it returns false to use refreshed data
                 var (updatedCacheValue, updatedCacheHit) = await ExecuteExclusiveTask(key, request, sourceFetchTimeout);
-                
-                if (updatedCacheHit) 
+
+                if (updatedCacheHit)
                     (cacheValue, cacheHit) = (updatedCacheValue, updatedCacheHit);
 
                 _logger.LogD((cacheHit ? "succeed" : "failed") + " with result " + cacheValue.Value);
@@ -77,7 +77,7 @@ namespace AutoCache
             var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             if (!await semaphore.WaitAsync(waitMillisecondTimeout))
             {
-                _logger.LogD(key + " don't wait for SEMAPHORE and use outdated data");
+                _logger.LogD(key + " don't wait for SEMAPHORE and use refreshed data");
                 return (cacheValue, cacheHit);
             }
             try
@@ -97,9 +97,9 @@ namespace AutoCache
             return (cacheValue, cacheHit);
         }
 
-        private Request<T> GetRequestParamsObject<T>(Func<Task<(T, bool)>> sourceFetch, TimeSpan? outdatedAt, TimeSpan? expireAt)
+        private Request<T> GetRequestParamsObject<T>(Func<Task<(T, bool)>> sourceFetch, TimeSpan? refreshAt, TimeSpan? expireAt)
         {
-            return new Request<T>(sourceFetch, outdatedAt, expireAt);
+            return new Request<T>(sourceFetch, refreshAt, expireAt);
         }
 
 
@@ -110,7 +110,7 @@ namespace AutoCache
             var (cacheValue, cacheHit) = await GetAsync<CacheValue<T>>(key);
 
             // Update cache and get new value
-            if (!cacheHit || cacheValue.IsOutdated())
+            if (!cacheHit || cacheValue.IsRefreshed())
                 (cacheValue, cacheHit) = await UpdateTheCache(key, request);
             return (cacheValue, cacheHit);
         }
@@ -121,7 +121,7 @@ namespace AutoCache
             var (sourceValue, hasValue) = await GetFromSource(request);
             if (hasValue)
             {
-                var cacheValue = ConvertSourceValueToCacheValue(sourceValue, request.OutdatedAt);
+                var cacheValue = ConvertSourceValueToCacheValue(sourceValue, request.RefreshAt);
                 await SetTheCache(key, cacheValue, request.ExpireAt ?? _defaultExpireAt);
                 return (cacheValue, true);
             }
@@ -129,15 +129,15 @@ namespace AutoCache
             return (default, false)!;
         }
 
-        private async Task<(T,bool)> GetFromSource<T>(Request<T> request)
+        private async Task<(T, bool)> GetFromSource<T>(Request<T> request)
         {
             try
             {
                 return await request.SourceFetch();
             }
             catch (Exception ex)
-            {                 
-                _logger.LogE("Cannot fetch from source. " + ex.Message);                
+            {
+                _logger.LogE("Cannot fetch from source. " + ex.Message);
             }
             return (default, false);
         }
@@ -154,12 +154,12 @@ namespace AutoCache
             }
         }
 
-        private CacheValue<T> ConvertSourceValueToCacheValue<T>(T sourceValue, TimeSpan? outdatedAt)
+        private CacheValue<T> ConvertSourceValueToCacheValue<T>(T sourceValue, TimeSpan? refreshAt)
         {
             return new CacheValue<T>()
             {
                 Value = sourceValue,
-                OutdatedAt = DateTime.Now.Add(outdatedAt ?? _defaultOutdatedAt)
+                RefreshAt = DateTime.Now.Add(refreshAt ?? _defaultRefreshAt)
             };
         }
 
