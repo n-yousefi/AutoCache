@@ -8,7 +8,7 @@ When you are caching data from a resource, there are caching patterns that you c
 
 Cache misses often cause many requests to be referred to the resource, simultaneously until the data is cached again. It can reduce system performance and functionality.
 
-![cache-aside](img/cache-aside.jpg)
+![cache-aside](https://raw.githubusercontent.com/n-yousefi/AutoCache/master/img/cache-aside.jpg)
 
 # Why AutoCache?
 
@@ -22,7 +22,8 @@ AutoCache adds a "refresh" time to each key. When it's time to refresh a key, th
 
 The "refresh" and "expiration" times get updated after each refresh.
 
-![cache-aside](img/autocache.jpg)
+![autocache](https://raw.githubusercontent.com/n-yousefi/AutoCache/master/img/autocache.jpg)
+
 
 Depending on the type of business, by choosing a long time for expiration and a short time for refreshing, it avoided cache misses and consecutive waits.
 
@@ -30,7 +31,7 @@ Depending on the type of business, by choosing a long time for expiration and a 
 
 On the cache key missing, only the first request will fire the cache update task. All other requests wait for the result to be ready.
 
-![cache-aside](img/coalescing.jpg)
+![coalescing](https://raw.githubusercontent.com/n-yousefi/AutoCache/master/img/coalescing.jpg)
 
 # Installation
 
