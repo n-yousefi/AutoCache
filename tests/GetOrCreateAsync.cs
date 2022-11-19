@@ -25,87 +25,81 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task CheckExpireAt()
+        public async Task BeforeRefresh_ReturnOldState()
         {
             // Arrange
             var cachedSvc = GetService(
-                sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
+                sourceFetchTimeout: TimeSpan.FromMinutes(1),
                 refreshAt: TimeSpan.FromMilliseconds(100),
-                expireAt: TimeSpan.FromMilliseconds(100),
+                expireAt: TimeSpan.FromMinutes(1),
                 readFromSourceDelay: TimeSpan.FromMilliseconds(0));
 
             // Act
-            Db.State = 1;
-            var r1 = await cachedSvc.GetAsync("r1");
+            cachedSvc.Set("key", 1);
+            var firstRequest = await cachedSvc.GetAsync("key");
 
-            Db.State = 2;
-            var r2 = await cachedSvc.GetAsync("r2");
-
-            await Task.Delay(TimeSpan.FromMilliseconds(110));
-            var r3 = await cachedSvc.GetAsync("r3");
+            cachedSvc.Set("key", 2);
+            var secondRequest = await cachedSvc.GetAsync("key");
 
             // Assert
-            Assert.Equal(1, r1);
-            Assert.Equal(1, r2);
-            Assert.Equal(2, r3);
+            Assert.Equal(firstRequest, 1);
+            Assert.Equal(secondRequest, 1);
         }
 
         [Fact]
-        public async Task CheckRefreshAt()
+        public async Task AfterRefresh_ReturnNewState()
         {
             // Arrange
             var cachedSvc = GetService(
-                sourceFetchTimeout: TimeSpan.FromMilliseconds(1000000),
+                sourceFetchTimeout: TimeSpan.FromMinutes(1),
                 refreshAt: TimeSpan.FromMilliseconds(1),
-                expireAt: TimeSpan.FromMilliseconds(1000000),
-                readFromSourceDelay: TimeSpan.FromMilliseconds(1000));
+                expireAt: TimeSpan.FromMinutes(1),
+                readFromSourceDelay: TimeSpan.FromMilliseconds(0));
 
             // Act
-            Db.State = 1;
-            await cachedSvc.GetAsync("r1");
+            cachedSvc.Set("key", 1);
+            var firstRequest = await cachedSvc.GetAsync("key");
 
-            Db.State = 2;
+            cachedSvc.Set("key", 2);
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
+
+            // cache update triggred but old state returned
+            var secondRequest = await cachedSvc.GetAsync("key");
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            var thridRequest = await cachedSvc.GetAsync("key");
+
+            // Assert
+            Assert.Equal(firstRequest, 1);
+            Assert.Equal(secondRequest, 1);
+            Assert.Equal(thridRequest, 2);
+        }
+
+        [Fact]
+        public async Task Coalescing_ServeralRequestsForAMissingKey_OneAccessShouldHappend()
+        {
+            // Arrange
+            var cachedSvc = GetService(
+                sourceFetchTimeout: TimeSpan.FromMinutes(1),
+                refreshAt: TimeSpan.FromSeconds(30),
+                expireAt: TimeSpan.FromSeconds(60),
+                readFromSourceDelay: TimeSpan.FromSeconds(1));
+
+            // Act
+            cachedSvc.Set("key", 1);
+
             await Task.Delay(TimeSpan.FromMilliseconds(11));
-            var t1 = Task.Run(() => cachedSvc.GetAsync("t1"));
-            var t2 = Task.Run(() => cachedSvc.GetAsync("t2"));
-            var t3 = Task.Run(() => cachedSvc.GetAsync("t3"));
-            var t4 = Task.Run(() => cachedSvc.GetAsync("t4"));
-
-            await Task.Delay(TimeSpan.FromMilliseconds(10000));
+            var t1 = Task.Run(() => cachedSvc.GetAsync("key"));
+            var t2 = Task.Run(() => cachedSvc.GetAsync("key"));
+            var t3 = Task.Run(() => cachedSvc.GetAsync("key"));
+            var t4 = Task.Run(() => cachedSvc.GetAsync("key"));
 
             Task.WaitAll(t1, t2, t3, t4);
 
-            var t7 = cachedSvc.GetAsync("t7");
+            var dbAccessCount = cachedSvc.AccessCount("key");
 
             // Assert
-            var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result, t7.Result };
-            results.Where(q => q == 1).Should().HaveCount(3);
-            results.Where(q => q == 2).Should().HaveCount(2);
-        }
-
-        [Fact]
-        public async Task Coalescing()
-        {
-            // Arrange
-            var cachedSvc = GetService(
-                sourceFetchTimeout: TimeSpan.FromMilliseconds(30000),
-                refreshAt: TimeSpan.FromMilliseconds(30000),
-                expireAt: TimeSpan.FromMilliseconds(60000),
-                readFromSourceDelay: TimeSpan.FromMilliseconds(1000));
-
-            // Act
-            Db.State = 1;
-            await Task.Delay(TimeSpan.FromMilliseconds(11));
-            var t1 = Task.Run(() => cachedSvc.GetAsync("t1"));
-            var t2 = Task.Run(() => cachedSvc.GetAsync("t2"));
-            var t3 = Task.Run(() => cachedSvc.GetAsync("t3"));
-            var t4 = Task.Run(() => cachedSvc.GetAsync("t4"));
-
-            await Task.Delay(TimeSpan.FromMilliseconds(10000));
-
-            // Assert
-            var results = new List<int> { t1.Result, t2.Result, t3.Result, t4.Result };
-            results.Where(q => q == 1).Should().HaveCount(4);
+            Assert.Equal(dbAccessCount, 1);
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoCache;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace UnitTests.Mocks
 {
@@ -15,10 +14,9 @@ namespace UnitTests.Mocks
     public class Cache : CacheAdapter
     {
         public Cache(TimeSpan sourceFetchTimeout) : base(
-            TimeSpan.FromMinutes(1), 
+            TimeSpan.FromMinutes(1),
             TimeSpan.FromHours(1),
-            sourceFetchTimeout,
-            new ConsoleLogger())
+            sourceFetchTimeout)
         {
 
         }

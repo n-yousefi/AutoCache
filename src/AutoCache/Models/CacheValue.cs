@@ -7,6 +7,6 @@ namespace AutoCache.Models
         public DateTime RefreshAt { get; set; }
         public T Value { get; set; } = default!;
 
-        public bool IsRefreshed() => DateTime.Now >= RefreshAt;
+        public bool TimeToRefresh() => DateTime.Now >= RefreshAt;
     }
 }

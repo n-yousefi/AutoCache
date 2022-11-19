@@ -24,7 +24,7 @@ namespace UnitTests.Services
         }
 
         public override async Task<int> GetAsync(string key) =>
-            await _cache.GetOrCreateAsync<int>("todo_service_cache_key",
+            await _cache.GetOrCreateAsync<int>(key,
                 async () =>
                 {
                     try
