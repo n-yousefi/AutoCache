@@ -35,11 +35,11 @@ namespace UnitTests
                 readFromSourceDelay: TimeSpan.FromMilliseconds(0));
 
             // Act
-            cachedSvc.Set("key", 1);
-            var firstRequest = await cachedSvc.GetAsync("key");
+            cachedSvc.Set("key4", 1);
+            var firstRequest = await cachedSvc.GetAsync("key4");
 
-            cachedSvc.Set("key", 2);
-            var secondRequest = await cachedSvc.GetAsync("key");
+            cachedSvc.Set("key4", 2);
+            var secondRequest = await cachedSvc.GetAsync("key4");
 
             // Assert
             Assert.Equal(firstRequest, 1);
@@ -57,17 +57,17 @@ namespace UnitTests
                 readFromSourceDelay: TimeSpan.FromMilliseconds(0));
 
             // Act
-            cachedSvc.Set("key", 1);
-            var firstRequest = await cachedSvc.GetAsync("key");
+            cachedSvc.Set("key1", 1);
+            var firstRequest = await cachedSvc.GetAsync("key1");
 
-            cachedSvc.Set("key", 2);
+            cachedSvc.Set("key1", 2);
             await Task.Delay(TimeSpan.FromMilliseconds(1));
 
             // cache update triggred but old state returned
-            var secondRequest = await cachedSvc.GetAsync("key");
+            var secondRequest = await cachedSvc.GetAsync("key1");
 
             await Task.Delay(TimeSpan.FromMilliseconds(100));
-            var thridRequest = await cachedSvc.GetAsync("key");
+            var thridRequest = await cachedSvc.GetAsync("key1");
 
             // Assert
             Assert.Equal(firstRequest, 1);
@@ -86,17 +86,17 @@ namespace UnitTests
                 readFromSourceDelay: TimeSpan.FromSeconds(1));
 
             // Act
-            cachedSvc.Set("key", 1);
+            cachedSvc.Set("key2", 1);
 
             await Task.Delay(TimeSpan.FromMilliseconds(11));
-            var t1 = Task.Run(() => cachedSvc.GetAsync("key"));
-            var t2 = Task.Run(() => cachedSvc.GetAsync("key"));
-            var t3 = Task.Run(() => cachedSvc.GetAsync("key"));
-            var t4 = Task.Run(() => cachedSvc.GetAsync("key"));
+            var t1 = Task.Run(() => cachedSvc.GetAsync("key2"));
+            var t2 = Task.Run(() => cachedSvc.GetAsync("key2"));
+            var t3 = Task.Run(() => cachedSvc.GetAsync("key2"));
+            var t4 = Task.Run(() => cachedSvc.GetAsync("key2"));
 
             Task.WaitAll(t1, t2, t3, t4);
 
-            var dbAccessCount = cachedSvc.AccessCount("key");
+            var dbAccessCount = cachedSvc.AccessCount("key2");
 
             // Assert
             Assert.Equal(dbAccessCount, 1);

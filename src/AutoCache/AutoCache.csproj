@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/n-yousefi/AutoCache</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Cache;.Net;Redis;IMemoryCache;</PackageTags>
-    <Version>3.2.0-alpha</Version>        
+    <Version>3.2.0</Version>        
 	  <GenerateSymbolPackage Condition=" '$(GenerateSymbolPackage)' == '' ">True</GenerateSymbolPackage>
   </PropertyGroup>
 
