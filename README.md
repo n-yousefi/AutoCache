@@ -1,39 +1,28 @@
-# Problem and the solution
+# AutoCache
 
-## Caching patterns
+AutoCache is a .NET library that optimizes source caching in high traffic applications. It utilizes a cache-aside approach, but in practice, it works similar to a write-through method and updates the cache before the next request. This library also includes cache coalescing which eliminates real cache misses and improves system performance.
 
-When you are caching data from a resource, there are caching patterns that you can implement, including proactive and reactive approaches. Two common approaches are cache-aside or lazy loading (a reactive approach) and write-through (a proactive approach). A cache-aside cache is updated after the data is requested. A write-through cache is updated immediately when the primary database is updated.
+## Problem
 
-## Cache-Aside (Lazy Loading) Disadvantage
+When caching data from a resource, there are two common approaches: cache-aside or lazy loading and write-through. Cache-aside or lazy loading is a reactive approach, where the cache is updated after the data is requested. Write-through is a proactive approach, where the cache is updated immediately when the primary database is updated.
 
-Cache misses often cause many requests to be referred to the resource, simultaneously until the data is cached again. It can reduce system performance and functionality.
+The disadvantage of cache-aside is that cache misses often cause many requests to be referred to the resource simultaneously until the data is cached again, reducing system performance and functionality.
 
 ![cache-aside](https://raw.githubusercontent.com/n-yousefi/AutoCache/master/img/cache-aside.jpg)
 
-# Why AutoCache?
+## Solution
 
-With cache coalescing and using a two-level response, there are no real cache misses. It is a cache-aside approache, but in practice, it works similar to the write-through method and the cache is updated before the next request.
-
-I am currently using this library for a heavy-load application. This program receives more than **30 million** requests per day and handles them with redis using AutoCache.
-
-# How it works?
-
-AutoCache adds a "refresh" time to each key. When it's time to refresh a key, the cache update starts with the first incoming request. All requests receive the response without waiting for the update.
-
-The "refresh" and "expiration" times get updated after each refresh.
+AutoCache solves this problem by adding a "refresh" time to each key. When it's time to refresh a key, the cache update starts with the first incoming request. All requests receive the response without waiting for the update. The "refresh" and "expiration" times are updated after each refresh.
 
 ![autocache](https://raw.githubusercontent.com/n-yousefi/AutoCache/master/img/autocache.jpg)
 
-
-Depending on the type of business, by choosing a long time for expiration and a short time for refreshing, it avoided cache misses and consecutive waits.
-
-## Coalescing
-
-On the cache key missing, only the first request will fire the cache update task. All other requests wait for the result to be ready.
+AutoCache also includes cache coalescing which means that on a cache key miss, only the first request will fire the cache update task. All other requests will wait for the result to be ready.
 
 ![coalescing](https://raw.githubusercontent.com/n-yousefi/AutoCache/master/img/coalescing.jpg)
 
-# Installation
+## Usage
+
+### Installation
 
 [![NuGet](https://img.shields.io/badge/AutoCache-nuget-green)](https://www.nuget.org/packages/AutoCache/)
 
@@ -43,46 +32,36 @@ First, [install NuGet](http://docs.nuget.org/docs/start-here/installing-nuget). 
 PM> Install-Package AutoCache
 ```
 
-### How do I get started?
+### Getting Started
 
-"CacheAdapter" class implements "ICacheAdapter" interface and has tree abstract methods. You must implement them to have the fourth method.
+1. Create your cache adapter by implementing the ICacheAdapter interface:
 
-    public interface ICacheAdapter
-    {
-        public abstract Task SetAsync<T>(string key, T value, TimeSpan expireAt);
-        public abstract Task<(T, bool)> GetAsync<T>(string key);
-        public abstract Task RemoveAsync(string key);
-
-        public Task<T> GetOrCreateAsync<T>(string key,
-            Func<Task<(T, bool)>> resourceFetch,
-            TimeSpan? refreshAt = null,
-            TimeSpan? expireAt = null,
-            TimeSpan? timeout = null);
-    }
-
-First create your cache adapter:
-
+   ```csharp
     public interface IMyCacheAdapter: ICacheAdapter{}
     public class MyCacheAdapter : CacheAdapter,IMyCacheAdapter{
         // Override abstract methods
     }
+    ```
+    
+2. Inject your adapter in ConfigureServices:
 
-Then inject your adapter in ConfigureServices:
-
+   ```csharp
     services.AddSingleton<IMyCacheAdapter>(provider =>
         new MyCacheAdapter(
             TimeSpan.FromMinutes(2), // DefaultRefreshAt
             TimeSpan.FromHours(1), //DefaultExpiredAt
             TimeSpan.FromSeconds(30) //DefaultSourceFetchTimeout
         ));
+    ```
+    
+3. Use it in your services:
 
-Now you can use it:
-
+   ```csharp
     public interface IToDoService
     {
         Task<int> GetAsync();
     }
-
+    
     public class ToDoService: IToDoService
     {
         public virtual async Task<int> GetAsync() {
@@ -90,7 +69,7 @@ Now you can use it:
             throw new NotImplementedException();
         };
     }
-
+    
     public class CachedTodoService:ToDoService
     {
         private readonly IMyCacheAdapter _cache;
@@ -111,8 +90,18 @@ Now you can use it:
                     }
                 });
     }
+    ```
 
-
+## Configuration
+    
+You can configure the default refreshAt, expireAt and timeout for the CacheAdapter and adjust them to your needs.
+    
+## Tips
+    
+* Depending on your business, by choosing a long time for expiration and a short time for refreshing, you can avoid cache misses and consecutive waits.
+* This library is currently being used in a heavy-load application that receives more than 30 million requests per day and handles them with redis using AutoCache. 
+    
+    
 ## Changelog
 
 [Learn about the latest improvements][changelog].
