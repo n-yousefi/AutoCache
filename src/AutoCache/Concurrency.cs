@@ -6,33 +6,21 @@ using System.Threading;
 [assembly: InternalsVisibleTo("UnitTests")]
 namespace AutoCache
 {
-    internal static class Concurrency<T>
+    internal static class Concurrency
     {
-        internal sealed class Locks : ConcurrentDictionary<string, SemaphoreSlim>
-        {
-            private static readonly Lazy<Locks> Lazy = new Lazy<Locks>(Create);
-            internal static Locks Dic => Lazy.Value;
-
-            private Locks(ConcurrentDictionary<string, SemaphoreSlim> dictionary) : base(dictionary)
-            { }
-            private static Locks Create()
-            {
-                return new Locks(new ConcurrentDictionary<string, SemaphoreSlim>());
-            }
-        }
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> Semaphores = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         internal static bool StartTransaction(string key, TimeSpan timeOut)
         {
-            var transactionLock = Locks.Dic.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-            return transactionLock.Wait(timeOut);
+            SemaphoreSlim semaphore = Semaphores.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            return semaphore.Wait(timeOut);
         }
-        private static readonly Object releaseLock = new Object();
-        internal static void EndTransaction(string key)
+
+        public static void EndTransaction(string key)
         {
-            lock (releaseLock)
+            if (Semaphores.TryGetValue(key, out SemaphoreSlim semaphore))
             {
-                if (Locks.Dic.TryGetValue(key, out SemaphoreSlim removedLock))
-                    removedLock.Release();
+                semaphore.Release();
             }
         }
     }

@@ -31,14 +31,14 @@ namespace AutoCache
             if (hit) // Two level caching
             {
                 if (val.TimeToRefresh())
-                    _ = UpdateCacheAsync(key, sourceFetch, refreshAt, expireAt);                
+                    _ = UpdateCacheAsync(key, sourceFetch, refreshAt, expireAt);
                 return val.Value;
             }
             else // Coalescing
             {
                 try
                 {
-                    if (!Concurrency<T>.StartTransaction(key, timeout ?? _defaultTimeout))
+                    if (!Concurrency.StartTransaction(key, timeout ?? _defaultTimeout))
                         throw new TimeoutException("Source fetch timeout expired.");
 
                     (val, hit) = await GetAsync<CacheValue<T>>(key);
@@ -48,7 +48,7 @@ namespace AutoCache
                 }
                 finally
                 {
-                    Concurrency<T>.EndTransaction(key);
+                    Concurrency.EndTransaction(key);
                 }
 
                 if (!hit)
