@@ -38,7 +38,7 @@ namespace AutoCache
             {
                 try
                 {
-                    if (!Concurrency.StartTransaction(key, timeout ?? _defaultTimeout))
+                    if (!await Concurrency.StartTransaction(key, timeout ?? _defaultTimeout))
                         throw new TimeoutException("Source fetch timeout expired.");
 
                     (val, hit) = await GetAsync<CacheValue<T>>(key);
