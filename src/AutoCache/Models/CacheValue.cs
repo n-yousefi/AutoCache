@@ -1,12 +1,21 @@
-﻿using System;
+namespace AutoCache.Models;
 
-namespace AutoCache.Models
+/// <summary>
+/// The envelope persisted by AutoCache. Public setters intentionally support serializers used by Redis adapters.
+/// </summary>
+public sealed class CacheValue<T>
 {
-    public class CacheValue<T>
-    {
-        public DateTime RefreshAt { get; set; }
-        public T Value { get; set; } = default!;
+    public T Value { get; set; } = default!;
 
-        public bool TimeToRefresh() => DateTime.Now >= RefreshAt;
-    }
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public DateTimeOffset RefreshAt { get; set; }
+
+    public DateTimeOffset ExpiresAt { get; set; }
+
+    public bool IsFresh(DateTimeOffset now) => now < RefreshAt && now < ExpiresAt;
+
+    public bool IsStale(DateTimeOffset now) => now >= RefreshAt && now < ExpiresAt;
+
+    public bool IsExpired(DateTimeOffset now) => now >= ExpiresAt;
 }

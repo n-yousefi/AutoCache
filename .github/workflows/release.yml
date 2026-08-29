@@ -1,0 +1,81 @@
+name: Release to NuGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version from src/AutoCache/AutoCache.csproj
+        required: true
+        default: 4.0.0-alpha.1
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nuget-release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  verify-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Validate version and availability
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content src/AutoCache/AutoCache.csproj
+          $projectVersion = [string]$project.Project.PropertyGroup.Version
+          if ($projectVersion -ne $env:VERSION) {
+            throw "Requested version '$env:VERSION' does not match project version '$projectVersion'."
+          }
+
+          $packageUrl = "https://api.nuget.org/v3-flatcontainer/autocache/$($env:VERSION.ToLowerInvariant())/autocache.$($env:VERSION.ToLowerInvariant()).nupkg"
+          $response = Invoke-WebRequest $packageUrl -Method Head -SkipHttpErrorCheck
+          if ($response.StatusCode -ne 404) {
+            throw "AutoCache $env:VERSION is not available on NuGet.org (HTTP $($response.StatusCode)). Package versions are immutable."
+          }
+
+      - name: Verify and package
+        shell: pwsh
+        run: ./scripts/verify-release.ps1 -TestRepeats 3 -Requests 250000 -Concurrency 1024 -Keys 1000 -Rounds 20 -StorageRequests 20000
+
+      - name: Publish to NuGet.org
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_AUTH_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+            throw "Repository secret NUGET_AUTH_TOKEN is missing."
+          }
+
+          dotnet nuget push "artifacts/packages/AutoCache.$env:VERSION.nupkg" `
+            --api-key $env:NUGET_API_KEY `
+            --source https://api.nuget.org/v3/index.json `
+            --timeout 300
+
+      - name: Create GitHub prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$env:VERSION" `
+            "artifacts/packages/AutoCache.$env:VERSION.nupkg" `
+            "artifacts/packages/AutoCache.$env:VERSION.nupkg.sha256" `
+            "artifacts/packages/AutoCache.$env:VERSION.snupkg" `
+            "artifacts/packages/AutoCache.$env:VERSION.snupkg.sha256" `
+            --repo $env:GITHUB_REPOSITORY `
+            --target $env:GITHUB_SHA `
+            --title "AutoCache $env:VERSION" `
+            --generate-notes `
+            --prerelease

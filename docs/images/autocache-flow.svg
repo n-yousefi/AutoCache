@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title description">
+  <title id="title">AutoCache request flow</title>
+  <desc id="description">Fresh values return immediately, stale values return while one background refresh runs, and expired or missing values wait on one shared source call.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#071426"/><stop offset="1" stop-color="#12233e"/></linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#54d4ff"/><stop offset="1" stop-color="#8a7dff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#020817" flood-opacity=".42"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#89a5cb"/></marker>
+    <style>text{font-family:Inter,Segoe UI,Arial,sans-serif}.title{fill:#f5f9ff;font-size:30px;font-weight:700}.subtitle{fill:#9fb4d3;font-size:16px}.card-title{fill:#f5f9ff;font-size:20px;font-weight:700}.copy{fill:#b9c9df;font-size:15px}.label{font-size:13px;font-weight:700;letter-spacing:.6px}.line{stroke:#89a5cb;stroke-width:2.2;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1200" height="520" rx="24" fill="url(#background)"/><circle cx="1090" cy="35" r="170" fill="#3656d4" opacity=".10"/><circle cx="70" cy="505" r="140" fill="#13b8a6" opacity=".08"/>
+  <text x="52" y="58" class="title">One predictable path for every cache state</text><text x="52" y="88" class="subtitle">Per-key, process-local single-flight coordination prevents source stampedes.</text>
+  <g filter="url(#shadow)"><rect x="52" y="144" width="172" height="116" rx="18" fill="#162b48" stroke="#365479"/><circle cx="88" cy="180" r="16" fill="url(#brand)"/><path d="M82 180h12M88 174v12" stroke="#071426" stroke-width="3" stroke-linecap="round"/><text x="116" y="187" class="card-title">Request</text><text x="76" y="223" class="copy">GetOrCreateAsync</text><text x="76" y="246" class="copy">for one typed key</text></g>
+  <path d="M224 202H286" class="line"/>
+  <g filter="url(#shadow)"><rect x="288" y="128" width="224" height="148" rx="18" fill="#192b49" stroke="url(#brand)" stroke-width="2"/><text x="318" y="170" class="card-title">AutoCache</text><text x="318" y="202" class="copy">Read the stored envelope</text><text x="318" y="226" class="copy">and evaluate timestamps</text><rect x="318" y="242" width="124" height="22" rx="11" fill="#263d61"/><text x="334" y="258" class="label" fill="#8fcfff">PER KEY + TYPE</text></g>
+  <path d="M512 160C560 160 560 138 608 138" class="line"/><path d="M512 202H608" class="line"/><path d="M512 244C560 244 560 424 608 424" class="line"/>
+  <g filter="url(#shadow)"><rect x="612" y="106" width="240" height="94" rx="18" fill="#123a38" stroke="#27c5a9"/><text x="640" y="141" class="label" fill="#54e2c8">FRESH</text><text x="640" y="171" class="card-title">Return immediately</text></g>
+  <g filter="url(#shadow)"><rect x="612" y="222" width="240" height="126" rx="18" fill="#3a3219" stroke="#e5b94e"/><text x="640" y="258" class="label" fill="#f0cb6b">STALE, STILL USABLE</text><text x="640" y="288" class="card-title">Return immediately</text><text x="640" y="317" class="copy">Start one refresh in background</text></g>
+  <g filter="url(#shadow)"><rect x="612" y="370" width="240" height="108" rx="18" fill="#3b202c" stroke="#f2779d"/><text x="640" y="405" class="label" fill="#ff91b2">EXPIRED OR MISSING</text><text x="640" y="436" class="card-title">Wait for shared flight</text><text x="640" y="461" class="copy">Never serve the expired value</text></g>
+  <path d="M852 285C906 285 906 248 950 248" class="line"/><path d="M852 424C906 424 906 298 950 298" class="line"/>
+  <g filter="url(#shadow)"><rect x="954" y="208" width="194" height="132" rx="18" fill="#20284b" stroke="#8279f5"/><path d="M998 246c0-12 10-22 22-22s22 10 22 22c12 0 22 10 22 22s-10 22-22 22h-44c-12 0-22-10-22-22s10-22 22-22z" fill="#8a7dff" opacity=".85"/><text x="1100" y="255" class="label" text-anchor="middle" fill="#c9c5ff">SOURCE</text><text x="1051" y="310" class="card-title" text-anchor="middle">Exactly one call</text><text x="1051" y="333" class="copy" text-anchor="middle">per in-flight key</text></g>
+</svg>
