@@ -202,6 +202,6 @@ These are library-level and synthetic-backend tests. Validate the actual adapter
 
 ## Contributing and releases
 
-Run `./scripts/verify-release.ps1` before a pull request. GitHub Actions repeats release verification on Windows and Linux. NuGet publication runs only through the release workflow after its requested version matches the project.
+Run `./scripts/verify-release.ps1` before a pull request. GitHub Actions repeats release verification on Windows and Linux. NuGet publication runs only through the release workflow after its requested version matches the project, using NuGet trusted publishing with a short-lived credential.
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.

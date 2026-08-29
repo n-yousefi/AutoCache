@@ -69,7 +69,7 @@ Do not directly compare these rates with the original review's harness: the new 
 - Runtime NuGet dependencies: none, confirmed in the nuspec
 - SHA-256 sidecar files are regenerated for both artifacts by `scripts/verify-release.ps1`.
 
-The consumer uses an isolated NuGet package cache so an older package with the same version cannot mask the artifact being validated. Do not overwrite an already published package version; select a new version before publishing if this identifier already exists in your feed. Feed availability was not checked.
+The consumer uses an isolated NuGet package cache so an older package with the same version cannot mask the artifact being validated. Do not overwrite an already published package version; select a new version before publishing if this identifier already exists in your feed. The release guard confirmed that `AutoCache` version `4.0.0` returned HTTP 404 from NuGet before publication.
 
 ## Remaining production checks
 
