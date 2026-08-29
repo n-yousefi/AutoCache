@@ -5,8 +5,8 @@ namespace AutoCache.Internal;
 
 internal static class AutoCacheMetrics
 {
-    private static readonly Meter Meter = new(AutoCacheDiagnostics.MeterName, "4.0.0-alpha.1");
-    private static readonly ActivitySource ActivitySource = new(AutoCacheDiagnostics.ActivitySourceName, "4.0.0-alpha.1");
+    private static readonly Meter Meter = new(AutoCacheDiagnostics.MeterName, "4.0.0");
+    private static readonly ActivitySource ActivitySource = new(AutoCacheDiagnostics.ActivitySourceName, "4.0.0");
 
     private static readonly Counter<long> FreshHits = Meter.CreateCounter<long>("autocache.fresh_hits");
     private static readonly Counter<long> StaleHits = Meter.CreateCounter<long>("autocache.stale_hits");

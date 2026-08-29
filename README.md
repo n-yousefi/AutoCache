@@ -1,6 +1,6 @@
 # AutoCache
 
-[![NuGet prerelease](https://img.shields.io/nuget/vpre/AutoCache.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/AutoCache)
+[![NuGet](https://img.shields.io/nuget/v/AutoCache.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/AutoCache)
 [![NuGet downloads](https://img.shields.io/nuget/dt/AutoCache.svg?logo=nuget&label=downloads)](https://www.nuget.org/packages/AutoCache)
 [![CI](https://github.com/n-yousefi/AutoCache/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/n-yousefi/AutoCache/actions/workflows/ci.yml)
 [![Targets](https://img.shields.io/badge/.NET-8%20%7C%2010-512bd4?logo=dotnet)](https://dotnet.microsoft.com/)
@@ -24,10 +24,10 @@ AutoCache wraps the storage backend you already use. It prevents a cold cache mi
 
 ## Install
 
-Version 4 is currently distributed as a prerelease:
+Install the stable Version 4 package:
 
 ```bash
-dotnet add package AutoCache --version 4.0.0-alpha.1
+dotnet add package AutoCache --version 4.0.0
 ```
 
 ## How it works

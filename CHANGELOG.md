@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0-alpha.1 - 2026-08-29
+## 4.0.0 - 2026-08-29
 
 - Recheck freshness and hard expiration after asynchronous storage reads.
 - Queue one shared flight so stale callers never execute synchronous refresh work inline.

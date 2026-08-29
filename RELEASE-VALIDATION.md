@@ -4,7 +4,7 @@
 
 The confirmed review defects are fixed. Local release verification passed on Windows for .NET 8.0.29 and .NET 10.0.10 using SDK 10.0.302. A NuGet package was built and consumed successfully by an independent application on both runtimes.
 
-The version remains **4.0.0-alpha.1**. The publication preflight built both the primary and symbol packages and restored the primary package into independent .NET 8 and .NET 10 consumers. This evidence supports publishing the tested prerelease; it is not a guarantee of correctness for every backend, nor approval of a stable production rollout without application-specific staging validation.
+The release version is **4.0.0**. The publication preflight built both the primary and symbol packages and restored the primary package into independent .NET 8 and .NET 10 consumers. This evidence supports publishing the tested stable package; it is not a guarantee of correctness for every backend or a substitute for application-specific staging validation.
 
 ## Changes
 
@@ -63,7 +63,7 @@ Do not directly compare these rates with the original review's harness: the new 
 
 ## Package
 
-- Files: `artifacts/packages/AutoCache.4.0.0-alpha.1.nupkg` and `AutoCache.4.0.0-alpha.1.snupkg`
+- Files: `artifacts/packages/AutoCache.4.0.0.nupkg` and `AutoCache.4.0.0.snupkg`
 - Targets: `net8.0` and `net10.0`
 - Includes: both assemblies, XML documentation, and updated README
 - Runtime NuGet dependencies: none, confirmed in the nuspec

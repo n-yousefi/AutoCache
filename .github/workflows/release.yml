@@ -6,7 +6,7 @@ on:
       version:
         description: Version from src/AutoCache/AutoCache.csproj
         required: true
-        default: 4.0.0-alpha.1
+        default: 4.0.0
         type: string
 
 permissions:
@@ -64,7 +64,7 @@ jobs:
             --source https://api.nuget.org/v3/index.json `
             --timeout 300
 
-      - name: Create GitHub prerelease
+      - name: Create GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -77,5 +77,4 @@ jobs:
             --repo $env:GITHUB_REPOSITORY `
             --target $env:GITHUB_SHA `
             --title "AutoCache $env:VERSION" `
-            --generate-notes `
-            --prerelease
+            --generate-notes

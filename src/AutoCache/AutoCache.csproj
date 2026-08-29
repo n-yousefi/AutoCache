@@ -3,7 +3,7 @@
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <PackageId>AutoCache</PackageId>
     <Title>AutoCache</Title>
-    <Version>4.0.0-alpha.1</Version>
+    <Version>4.0.0</Version>
     <Authors>Naser Yousefi</Authors>
     <Copyright>Copyright © Naser Yousefi</Copyright>
     <Description>Stale-while-revalidate caching for high-throughput .NET applications with single-flight refresh and miss coalescing.</Description>
